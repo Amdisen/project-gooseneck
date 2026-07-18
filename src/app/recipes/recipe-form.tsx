@@ -11,6 +11,7 @@ import {
   type RecipeFormValues,
 } from "@/lib/validation/recipe";
 import { createRecipe, updateDraft } from "./actions";
+import { PhotoUpload } from "./photo-upload";
 
 type PourRow = { target: string; at: string };
 
@@ -20,8 +21,10 @@ export type FormState = {
   roaster: string;
   origin: string;
   roastLevel: string;
+  beanPhotoUrl: string;
   grinderName: string;
   grindSetting: string;
+  grindPhotoUrl: string;
   dose: string;
   waterTemp: string;
   filterType: string;
@@ -37,8 +40,10 @@ const EMPTY: FormState = {
   roaster: "",
   origin: "",
   roastLevel: "",
+  beanPhotoUrl: "",
   grinderName: "",
   grindSetting: "",
+  grindPhotoUrl: "",
   dose: "",
   waterTemp: "",
   filterType: "",
@@ -112,8 +117,10 @@ export function RecipeForm({
       roaster: form.roaster,
       origin: form.origin,
       roastLevel: form.roastLevel === "" ? undefined : form.roastLevel,
+      beanPhotoUrl: form.beanPhotoUrl,
       grinderName: form.grinderName,
       grindSetting: form.grindSetting,
+      grindPhotoUrl: form.grindPhotoUrl,
       doseGrams: num(form.dose),
       waterTempC: num(form.waterTemp),
       filterType: form.filterType,
@@ -197,6 +204,13 @@ export function RecipeForm({
             ))}
           </select>
         </label>
+        <div className="sm:col-span-2">
+          <PhotoUpload
+            label="Bean photo"
+            value={form.beanPhotoUrl}
+            onChange={(url) => set("beanPhotoUrl", url)}
+          />
+        </div>
       </fieldset>
 
       <fieldset className="grid gap-3 sm:grid-cols-2">
@@ -209,6 +223,13 @@ export function RecipeForm({
           <span>Grind setting</span>
           <input className={field} value={form.grindSetting} onChange={(e) => set("grindSetting", e.target.value)} placeholder="e.g. 22 clicks" />
         </label>
+        <div className="sm:col-span-2">
+          <PhotoUpload
+            label="Grind photo"
+            value={form.grindPhotoUrl}
+            onChange={(url) => set("grindPhotoUrl", url)}
+          />
+        </div>
       </fieldset>
 
       <fieldset className="grid gap-3 sm:grid-cols-3">

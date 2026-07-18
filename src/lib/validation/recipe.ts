@@ -66,10 +66,12 @@ export const recipeVersionInputSchema = z.object({
   roaster: z.string().trim().max(120).optional(),
   origin: z.string().trim().max(120).optional(),
   roastLevel: roastLevelSchema.optional(),
+  beanPhotoUrl: z.string().url().optional(),
 
   // Grinder
   grinderName: z.string().trim().max(120).optional(),
   grindSetting: z.string().trim().max(120).optional(),
+  grindPhotoUrl: z.string().url().optional(),
 
   // Core brew params
   doseGrams: z.number().positive().max(200),
@@ -141,9 +143,11 @@ export const recipeFormSchema = z
     roaster: z.string().trim().max(120).optional().or(z.literal("")),
     origin: z.string().trim().max(120).optional().or(z.literal("")),
     roastLevel: roastLevelSchema.optional(),
+    beanPhotoUrl: z.string().url().optional().or(z.literal("")),
 
     grinderName: z.string().trim().max(120).optional().or(z.literal("")),
     grindSetting: z.string().trim().max(120).optional().or(z.literal("")),
+    grindPhotoUrl: z.string().url().optional().or(z.literal("")),
 
     doseGrams: z.number().positive().max(200),
     waterTempC: z.number().min(1).max(100).optional(),
@@ -200,8 +204,10 @@ export function formToVersionInput(v: RecipeFormValues): RecipeVersionInput {
     roaster: blank(v.roaster),
     origin: blank(v.origin),
     roastLevel: v.roastLevel,
+    beanPhotoUrl: blank(v.beanPhotoUrl),
     grinderName: blank(v.grinderName),
     grindSetting: blank(v.grindSetting),
+    grindPhotoUrl: blank(v.grindPhotoUrl),
     doseGrams: v.doseGrams,
     waterGrams: totalWater,
     waterTempC: v.waterTempC,

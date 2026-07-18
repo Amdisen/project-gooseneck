@@ -113,6 +113,33 @@ export default async function RecipePage({
             )}
           </section>
 
+          {(draft.beanPhotoUrl || draft.grindPhotoUrl) && (
+            <section className="flex gap-3">
+              {draft.beanPhotoUrl && (
+                <figure className="flex flex-col gap-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={draft.beanPhotoUrl}
+                    alt="Bean"
+                    className="h-28 w-28 rounded border border-gray-200 object-cover"
+                  />
+                  <figcaption className="text-xs text-gray-500">Bean</figcaption>
+                </figure>
+              )}
+              {draft.grindPhotoUrl && (
+                <figure className="flex flex-col gap-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={draft.grindPhotoUrl}
+                    alt="Grind"
+                    className="h-28 w-28 rounded border border-gray-200 object-cover"
+                  />
+                  <figcaption className="text-xs text-gray-500">Grind</figcaption>
+                </figure>
+              )}
+            </section>
+          )}
+
           <section>
             <h2 className="mb-2 text-sm font-semibold">Timeline</h2>
             <ol className="flex flex-col divide-y divide-gray-200 rounded border border-gray-200 text-sm">
