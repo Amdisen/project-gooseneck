@@ -156,6 +156,7 @@ export default async function RecipePage({
                   {draft.roaster ? ` · ${draft.roaster}` : ""}
                   {draft.origin ? ` · ${draft.origin}` : ""}
                   {draft.roastLevel ? ` · ${draft.roastLevel}` : ""}
+                  {draft.process ? ` · ${draft.process}` : ""}
                 </dd>
               </>
             )}

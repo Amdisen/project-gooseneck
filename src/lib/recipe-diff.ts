@@ -45,6 +45,7 @@ export function diffSnapshots(
   );
   cmp("ratio", prev.ratio, curr.ratio, (x: number) => `1:${x}`);
   cmp("bean", prev.beanName, curr.beanName);
+  cmp("process", prev.process, curr.process);
   cmp("grinder", prev.grinderName, curr.grinderName);
   cmp("filter", prev.filterType, curr.filterType);
   if (JSON.stringify(prev.pours) !== JSON.stringify(curr.pours)) {

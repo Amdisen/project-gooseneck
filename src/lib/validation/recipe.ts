@@ -66,6 +66,7 @@ export const recipeVersionInputSchema = z.object({
   roaster: z.string().trim().max(120).optional(),
   origin: z.string().trim().max(120).optional(),
   roastLevel: roastLevelSchema.optional(),
+  process: z.string().trim().max(60).optional(),
   beanPhotoUrl: z.string().url().optional(),
 
   // Grinder
@@ -143,6 +144,7 @@ export const recipeFormSchema = z
     roaster: z.string().trim().max(120).optional().or(z.literal("")),
     origin: z.string().trim().max(120).optional().or(z.literal("")),
     roastLevel: roastLevelSchema.optional(),
+    process: z.string().trim().max(60).optional().or(z.literal("")),
     beanPhotoUrl: z.string().url().optional().or(z.literal("")),
 
     grinderName: z.string().trim().max(120).optional().or(z.literal("")),
@@ -204,6 +206,7 @@ export function formToVersionInput(v: RecipeFormValues): RecipeVersionInput {
     roaster: blank(v.roaster),
     origin: blank(v.origin),
     roastLevel: v.roastLevel,
+    process: blank(v.process),
     beanPhotoUrl: blank(v.beanPhotoUrl),
     grinderName: blank(v.grinderName),
     grindSetting: blank(v.grindSetting),

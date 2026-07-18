@@ -21,6 +21,7 @@ export type FormState = {
   roaster: string;
   origin: string;
   roastLevel: string;
+  process: string;
   beanPhotoUrl: string;
   grinderName: string;
   grindSetting: string;
@@ -40,6 +41,7 @@ const EMPTY: FormState = {
   roaster: "",
   origin: "",
   roastLevel: "",
+  process: "",
   beanPhotoUrl: "",
   grinderName: "",
   grindSetting: "",
@@ -117,6 +119,7 @@ export function RecipeForm({
       roaster: form.roaster,
       origin: form.origin,
       roastLevel: form.roastLevel === "" ? undefined : form.roastLevel,
+      process: form.process,
       beanPhotoUrl: form.beanPhotoUrl,
       grinderName: form.grinderName,
       grindSetting: form.grindSetting,
@@ -203,6 +206,22 @@ export function RecipeForm({
               </option>
             ))}
           </select>
+        </label>
+        <label className={labelCls}>
+          <span>Process</span>
+          <input
+            className={field}
+            value={form.process}
+            onChange={(e) => set("process", e.target.value)}
+            placeholder="washed, natural…"
+            list="process-options"
+          />
+          <datalist id="process-options">
+            <option value="Washed" />
+            <option value="Natural" />
+            <option value="Honey" />
+            <option value="Anaerobic" />
+          </datalist>
         </label>
         <div className="sm:col-span-2">
           <PhotoUpload

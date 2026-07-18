@@ -93,6 +93,8 @@ export const recipeVersions = pgTable(
     roaster: text("roaster"),
     origin: text("origin"),
     roastLevel: roastLevelEnum("roast_level"),
+    /** Processing method: washed, natural, honey, anaerobic, … (free text). */
+    process: text("process"),
     beanPhotoUrl: text("bean_photo_url"),
 
     // Grinder

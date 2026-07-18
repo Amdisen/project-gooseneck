@@ -43,6 +43,7 @@ export default async function EditRecipePage({
     roaster: draft.roaster ?? "",
     origin: draft.origin ?? "",
     roastLevel: draft.roastLevel ?? "",
+    process: draft.process ?? "",
     beanPhotoUrl: draft.beanPhotoUrl ?? "",
     grinderName: draft.grinderName ?? "",
     grindSetting: draft.grindSetting ?? "",
