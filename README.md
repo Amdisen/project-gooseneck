@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gooseneck ☕
 
-## Getting Started
+A web app for recording and sharing **V60 pour-over coffee recipes** — capture the
+bean, grinder settings, dose, water, bloom and every pour, then re-brew it exactly,
+tweak it, or share it to a public feed for friends & family. Includes a guided
+live brew timer.
 
-First, run the development server:
+Built for mobile and desktop.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Tech stack
+
+- **Next.js (App Router) + TypeScript + React** — hosted on Vercel
+- **Supabase** — Auth (email+password + Google), Postgres, and Storage
+- **Drizzle ORM** — typed schema, migrations, and server queries
+- **Zod** — shared client/server validation
+- **Tailwind CSS** — styling (visual system driven by `design.md`, added later)
+
+## Project structure
+
+```
+src/
+  app/                 # Next.js routes (App Router)
+  lib/
+    db/
+      schema.ts        # Drizzle tables (profiles, recipes, recipe_versions, brew_logs)
+      index.ts         # server-only Drizzle client (Supabase Postgres)
+    supabase/
+      client.ts        # browser Supabase client
+      server.ts        # server Supabase client (cookies)
+    validation/
+      recipe.ts        # Zod schemas + derived helpers (ratio, total time)
+drizzle/               # generated SQL migrations
+supabase/
+  setup.sql            # auth→profile trigger + RLS policies (run in SQL editor)
+drizzle.config.ts
+.env.example
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Create a Supabase project
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+At [supabase.com](https://supabase.com), create a project. Then from the dashboard:
 
-## Learn More
+- **Project Settings → API**: copy the Project URL, the `anon` key, and the `service_role` key.
+- **Project Settings → Database → Connection string (URI)**: copy the **Transaction pooler** string (port `6543`).
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Configure environment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cp .env.example .env.local
+# then fill in the values from step 1
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. Create the database schema
 
-## Deploy on Vercel
+```bash
+npm run db:push        # creates the tables in Supabase Postgres
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Then open the Supabase **SQL Editor**, paste the contents of `supabase/setup.sql`,
+and run it. This adds the signup→profile trigger and the Row Level Security policies.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Run the app
+
+```bash
+npm run dev            # http://localhost:3000
+```
+
+## Database workflow
+
+| Command | What it does |
+| --- | --- |
+| `npm run db:generate` | Generate a SQL migration from schema changes |
+| `npm run db:migrate`  | Apply pending migrations |
+| `npm run db:push`     | Push the schema directly (fast, good for early dev) |
+| `npm run db:studio`   | Open Drizzle Studio to browse data |
+
+> After any change that adds/removes tables, re-run `supabase/setup.sql` if it
+> references the affected tables (RLS policies, triggers).
+
+## Roadmap
+
+See the project plan for the full phased roadmap. Current phase: **Phase 0 —
+Foundation** (scaffold, DB schema, env, deploy pipeline). Visual design is applied
+in a later phase from a dedicated `design.md`.
