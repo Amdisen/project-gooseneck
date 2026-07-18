@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { recipes, recipeVersions } from "@/lib/db/schema";
+import {
+  recipes,
+  recipeVersions,
+  coffees,
+  grinders,
+  brewers,
+} from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { secondsToClock, versionToFormPours } from "@/lib/validation/recipe";
 import { RecipeForm, type FormState } from "../../recipe-form";
@@ -32,6 +38,24 @@ export default async function EditRecipePage({
     .limit(1);
   if (!draft) redirect(`/recipes/${id}`);
 
+  const [myCoffees, myGrinders, myBrewers] = await Promise.all([
+    db
+      .select()
+      .from(coffees)
+      .where(and(eq(coffees.ownerId, user.id), isNull(coffees.archivedAt)))
+      .orderBy(desc(coffees.createdAt)),
+    db
+      .select()
+      .from(grinders)
+      .where(and(eq(grinders.ownerId, user.id), isNull(grinders.archivedAt)))
+      .orderBy(desc(grinders.createdAt)),
+    db
+      .select()
+      .from(brewers)
+      .where(and(eq(brewers.ownerId, user.id), isNull(brewers.archivedAt)))
+      .orderBy(desc(brewers.createdAt)),
+  ]);
+
   const cumulative = versionToFormPours(
     draft.bloomWaterGrams ?? 0,
     draft.pours ?? [],
@@ -39,6 +63,9 @@ export default async function EditRecipePage({
 
   const initial: FormState = {
     title: recipe.title,
+    coffeeId: recipe.coffeeId ?? "",
+    grinderId: recipe.grinderId ?? "",
+    brewerId: recipe.brewerId ?? "",
     beanName: draft.beanName ?? "",
     roaster: draft.roaster ?? "",
     origin: draft.origin ?? "",
@@ -67,7 +94,14 @@ export default async function EditRecipePage({
         ← Back to recipe
       </Link>
       <h1 className="mb-6 mt-2 text-2xl font-semibold">Edit recipe</h1>
-      <RecipeForm mode="edit" recipeId={id} initial={initial} />
+      <RecipeForm
+        mode="edit"
+        recipeId={id}
+        initial={initial}
+        coffees={myCoffees}
+        grinders={myGrinders}
+        brewers={myBrewers}
+      />
     </main>
   );
 }

@@ -62,7 +62,14 @@ export async function createRecipe(raw: unknown) {
 
   const [recipe] = await db
     .insert(recipes)
-    .values({ ownerId: user.id, title: parsed.data.title, method: "v60" })
+    .values({
+      ownerId: user.id,
+      title: parsed.data.title,
+      method: "v60",
+      coffeeId: parsed.data.coffeeId || null,
+      grinderId: parsed.data.grinderId || null,
+      brewerId: parsed.data.brewerId || null,
+    })
     .returning({ id: recipes.id });
 
   // The recipe's editable working state is a single draft version row.
@@ -108,7 +115,13 @@ export async function updateDraft(recipeId: string, raw: unknown) {
 
   await db
     .update(recipes)
-    .set({ title: parsed.data.title, updatedAt: new Date() })
+    .set({
+      title: parsed.data.title,
+      coffeeId: parsed.data.coffeeId || null,
+      grinderId: parsed.data.grinderId || null,
+      brewerId: parsed.data.brewerId || null,
+      updatedAt: new Date(),
+    })
     .where(eq(recipes.id, recipeId));
 
   revalidatePath(`/recipes/${recipeId}`);

@@ -140,6 +140,11 @@ export const recipeFormSchema = z
   .object({
     title: z.string().trim().min(1, "Give your recipe a title.").max(120),
 
+    // Optional soft references to the user's library (recipe still snapshots values).
+    coffeeId: z.string().uuid().optional().or(z.literal("")),
+    grinderId: z.string().uuid().optional().or(z.literal("")),
+    brewerId: z.string().uuid().optional().or(z.literal("")),
+
     beanName: z.string().trim().max(120).optional().or(z.literal("")),
     roaster: z.string().trim().max(120).optional().or(z.literal("")),
     origin: z.string().trim().max(120).optional().or(z.literal("")),

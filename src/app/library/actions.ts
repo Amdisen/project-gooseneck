@@ -4,12 +4,23 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { coffees, grinders, brewers, profiles } from "@/lib/db/schema";
+import {
+  coffees,
+  grinders,
+  brewers,
+  profiles,
+  type Coffee,
+  type Grinder,
+  type Brewer,
+} from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import {
   coffeeInputSchema,
   grinderInputSchema,
   brewerInputSchema,
+  type CoffeeInput,
+  type GrinderInput,
+  type BrewerInput,
 } from "@/lib/validation/library";
 
 function s(fd: FormData, k: string) {
@@ -100,6 +111,51 @@ export async function deleteBrewer(id: string) {
     .where(and(eq(brewers.id, id), eq(brewers.ownerId, user.id)));
   revalidatePath("/library");
   redirect("/library");
+}
+
+// --- Inline create (called from the recipe form; returns the new row) ------
+
+export async function createCoffeeInline(input: CoffeeInput): Promise<Coffee> {
+  const user = await requireUser();
+  const d = coffeeInputSchema.parse(input);
+  const [row] = await db
+    .insert(coffees)
+    .values({
+      ownerId: user.id,
+      name: d.name,
+      roaster: d.roaster || null,
+      origin: d.origin || null,
+      roastLevel: d.roastLevel ?? null,
+      process: d.process || null,
+      photoUrl: d.photoUrl || null,
+    })
+    .returning();
+  revalidatePath("/library");
+  return row;
+}
+
+export async function createGrinderInline(
+  input: GrinderInput,
+): Promise<Grinder> {
+  const user = await requireUser();
+  const d = grinderInputSchema.parse(input);
+  const [row] = await db
+    .insert(grinders)
+    .values({ ownerId: user.id, name: d.name })
+    .returning();
+  revalidatePath("/library");
+  return row;
+}
+
+export async function createBrewerInline(input: BrewerInput): Promise<Brewer> {
+  const user = await requireUser();
+  const d = brewerInputSchema.parse(input);
+  const [row] = await db
+    .insert(brewers)
+    .values({ ownerId: user.id, name: d.name, method: d.method })
+    .returning();
+  revalidatePath("/library");
+  return row;
 }
 
 // --- Profile defaults ------------------------------------------------------
