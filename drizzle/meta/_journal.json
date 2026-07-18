@@ -15,6 +15,13 @@
       "when": 1784385369218,
       "tag": "0001_cuddly_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784393616948,
+      "tag": "0002_tired_squirrel_girl",
+      "breakpoints": true
     }
   ]
 }

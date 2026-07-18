@@ -8,6 +8,7 @@ import { recipes, recipeVersions, brewLogs } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import {
   recipeFormSchema,
+  brewLogPayloadSchema,
   formToVersionInput,
   computeRatio,
   computeTotalBrewSeconds,
@@ -179,19 +180,55 @@ async function snapshotDraft(recipeId: string): Promise<string | null> {
   return saved.id;
 }
 
-/** Log a brew: rating + tasting notes + "change next time", with an auto-snapshot. */
-export async function logBrew(recipeId: string, formData: FormData) {
+/**
+ * The guided "Brew this" flow: optionally apply quick adjustments to the recipe,
+ * snapshot what was brewed, and record the outcome. `payload` is the client's
+ * BrewLogPayload object.
+ */
+export async function brewAndLog(recipeId: string, payload: unknown) {
   const user = await requireUser();
   await requireOwnedRecipe(recipeId, user.id);
 
-  const ratingRaw = formData.get("rating");
-  const rating =
-    ratingRaw && String(ratingRaw) !== ""
-      ? Math.min(5, Math.max(1, parseInt(String(ratingRaw), 10)))
-      : null;
-  const notes = (formData.get("notes")?.toString() ?? "").trim() || null;
-  const changeNext =
-    (formData.get("changeNext")?.toString() ?? "").trim() || null;
+  const parsed = brewLogPayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Invalid brew.");
+  }
+  const p = parsed.data;
+
+  const [draft] = await db
+    .select()
+    .from(recipeVersions)
+    .where(
+      and(
+        eq(recipeVersions.recipeId, recipeId),
+        eq(recipeVersions.isDraft, true),
+      ),
+    )
+    .limit(1);
+
+  // Apply the quick-adjust levers to the working recipe (water/pours go through
+  // the full editor). Ratio is derived from dose + (unchanged) water.
+  if (draft) {
+    const newDose = p.doseGrams ?? draft.doseGrams;
+    await db
+      .update(recipeVersions)
+      .set({
+        grindSetting:
+          p.grindSetting !== undefined
+            ? p.grindSetting || null
+            : draft.grindSetting,
+        doseGrams: newDose,
+        waterTempC: p.waterTempC ?? draft.waterTempC,
+        bloomWaterGrams: p.bloomWaterGrams ?? draft.bloomWaterGrams,
+        bloomSeconds: p.bloomSeconds ?? draft.bloomSeconds,
+        ratio: computeRatio(newDose, draft.waterGrams),
+      })
+      .where(eq(recipeVersions.id, draft.id));
+    await db
+      .update(recipes)
+      .set({ updatedAt: new Date() })
+      .where(eq(recipes.id, recipeId));
+  }
 
   const versionId = await snapshotDraft(recipeId);
 
@@ -199,10 +236,76 @@ export async function logBrew(recipeId: string, formData: FormData) {
     userId: user.id,
     recipeId,
     recipeVersionId: versionId,
-    rating,
-    notes,
-    changeNext,
+    outcome: p.outcome ?? null,
+    rating: p.rating ?? null,
+    notes: p.notes || null,
+    changeNext: p.changeNext || null,
   });
+
+  revalidatePath(`/recipes/${recipeId}`);
+  redirect(`/recipes/${recipeId}`);
+}
+
+/** Reset the working recipe back to a prior snapshot (one-tap "undo this change"). */
+export async function revertDraftToVersion(
+  recipeId: string,
+  versionId: string,
+) {
+  const user = await requireUser();
+  await requireOwnedRecipe(recipeId, user.id);
+
+  const [snap] = await db
+    .select()
+    .from(recipeVersions)
+    .where(
+      and(
+        eq(recipeVersions.id, versionId),
+        eq(recipeVersions.recipeId, recipeId),
+      ),
+    )
+    .limit(1);
+  if (!snap) redirect(`/recipes/${recipeId}`);
+
+  const [draft] = await db
+    .select({ id: recipeVersions.id })
+    .from(recipeVersions)
+    .where(
+      and(
+        eq(recipeVersions.recipeId, recipeId),
+        eq(recipeVersions.isDraft, true),
+      ),
+    )
+    .limit(1);
+  if (!draft) redirect(`/recipes/${recipeId}`);
+
+  await db
+    .update(recipeVersions)
+    .set({
+      beanName: snap.beanName,
+      roaster: snap.roaster,
+      origin: snap.origin,
+      roastLevel: snap.roastLevel,
+      beanPhotoUrl: snap.beanPhotoUrl,
+      grinderName: snap.grinderName,
+      grindSetting: snap.grindSetting,
+      grindPhotoUrl: snap.grindPhotoUrl,
+      doseGrams: snap.doseGrams,
+      waterGrams: snap.waterGrams,
+      waterTempC: snap.waterTempC,
+      filterType: snap.filterType,
+      techniqueNotes: snap.techniqueNotes,
+      bloomWaterGrams: snap.bloomWaterGrams,
+      bloomSeconds: snap.bloomSeconds,
+      pours: snap.pours,
+      ratio: snap.ratio,
+      totalBrewSeconds: snap.totalBrewSeconds,
+    })
+    .where(eq(recipeVersions.id, draft.id));
+
+  await db
+    .update(recipes)
+    .set({ updatedAt: new Date() })
+    .where(eq(recipes.id, recipeId));
 
   revalidatePath(`/recipes/${recipeId}`);
   redirect(`/recipes/${recipeId}`);

@@ -2,65 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import {
-  recipes,
-  recipeVersions,
-  brewLogs,
-  type RecipeVersion,
-} from "@/lib/db/schema";
+import { recipes, recipeVersions, brewLogs } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { secondsToClock } from "@/lib/validation/recipe";
-import { logBrew, deleteRecipe } from "../actions";
+import { diffSnapshots } from "@/lib/recipe-diff";
+import { deleteRecipe, revertDraftToVersion } from "../actions";
 
-/** Human-readable list of what changed between two param snapshots. */
-function diffSnapshots(
-  prev: RecipeVersion,
-  curr: RecipeVersion,
-): string[] {
-  const out: string[] = [];
-  const cmp = (
-    label: string,
-    a: unknown,
-    b: unknown,
-    fmt: (x: never) => string = (x) => String(x),
-  ) => {
-    const av = a ?? null;
-    const bv = b ?? null;
-    if (av !== bv) {
-      out.push(
-        `${label} ${av === null ? "—" : fmt(av as never)} → ${
-          bv === null ? "—" : fmt(bv as never)
-        }`,
-      );
-    }
-  };
-  cmp("dose", prev.doseGrams, curr.doseGrams, (x: number) => `${x}g`);
-  cmp("grind", prev.grindSetting, curr.grindSetting);
-  cmp("water", prev.waterGrams, curr.waterGrams, (x: number) => `${x}g`);
-  cmp("temp", prev.waterTempC, curr.waterTempC, (x: number) => `${x}°C`);
-  cmp(
-    "bloom water",
-    prev.bloomWaterGrams,
-    curr.bloomWaterGrams,
-    (x: number) => `${x}g`,
-  );
-  cmp(
-    "bloom time",
-    prev.bloomSeconds,
-    curr.bloomSeconds,
-    (x: number) => secondsToClock(x),
-  );
-  cmp("ratio", prev.ratio, curr.ratio, (x: number) => `1:${x}`);
-  cmp("bean", prev.beanName, curr.beanName);
-  cmp("grinder", prev.grinderName, curr.grinderName);
-  cmp("filter", prev.filterType, curr.filterType);
-  if (JSON.stringify(prev.pours) !== JSON.stringify(curr.pours)) {
-    out.push(
-      `pour schedule (${prev.pours?.length ?? 0} → ${curr.pours?.length ?? 0} pours)`,
-    );
-  }
-  return out;
-}
+const outcomeSymbol = (o: string | null) =>
+  o === "better" ? "▲ better" : o === "worse" ? "▼ worse" : o === "same" ? "= same" : "—";
 
 export default async function RecipePage({
   params,
@@ -92,7 +41,6 @@ export default async function RecipePage({
     .where(eq(brewLogs.recipeId, id))
     .orderBy(desc(brewLogs.brewedAt));
 
-  // Load the param snapshots tied to those brews.
   const versionIds = logs
     .map((l) => l.recipeVersionId)
     .filter((v): v is string => v != null);
@@ -104,14 +52,33 @@ export default async function RecipePage({
     : [];
   const snapById = new Map(snaps.map((s) => [s.id, s]));
 
-  const nextTip = logs.find((l) => l.changeNext)?.changeNext;
+  // Latest "try next" note is the only open suggestion.
+  const nextTip = logs[0]?.changeNext ?? null;
 
-  // How does the current recipe differ from the most recent brew?
+  // How the current recipe differs from the most recent brew.
   const lastBrewSnap = logs[0]?.recipeVersionId
     ? snapById.get(logs[0].recipeVersionId)
     : undefined;
   const sinceLastBrew =
     draft && lastBrewSnap ? diffSnapshots(lastBrewSnap, draft) : [];
+
+  // Offer to undo if the most recent brew was worse than the one before it.
+  const revertVersionId =
+    logs[0]?.outcome === "worse" ? (logs[1]?.recipeVersionId ?? null) : null;
+
+  // "Won't repeat" = the change that made a brew worse.
+  const wontRepeat: string[] = [];
+  logs.forEach((l, i) => {
+    if (l.outcome !== "worse") return;
+    const thisSnap = l.recipeVersionId ? snapById.get(l.recipeVersionId) : undefined;
+    const prevSnap = logs[i + 1]?.recipeVersionId
+      ? snapById.get(logs[i + 1].recipeVersionId!)
+      : undefined;
+    if (thisSnap && prevSnap) {
+      const d = diffSnapshots(prevSnap, thisSnap);
+      if (d.length) wontRepeat.push(d.join(" · "));
+    }
+  });
 
   const bloomWater = draft?.bloomWaterGrams ?? 0;
   let running = bloomWater;
@@ -147,17 +114,34 @@ export default async function RecipePage({
         )}
       </div>
 
-      {nextTip && (
-        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          <span className="font-medium">Before you brew — change next time:</span>{" "}
-          {nextTip}
-        </p>
-      )}
+      {/* Before you brew */}
+      <section className="flex flex-col gap-3 rounded border border-gray-200 p-4">
+        {nextTip && (
+          <p className="text-sm">
+            <span className="font-medium">Before you brew — try:</span> {nextTip}
+          </p>
+        )}
+        {sinceLastBrew.length > 0 && (
+          <p className="text-sm text-gray-500">
+            Changed since your last brew: {sinceLastBrew.join(" · ")}
+          </p>
+        )}
+        <Link
+          href={`/recipes/${id}/brew`}
+          className="self-start rounded bg-gray-900 px-5 py-2.5 font-medium text-white"
+        >
+          Brew this →
+        </Link>
+      </section>
 
-      {sinceLastBrew.length > 0 && (
-        <div className="rounded border border-gray-300 bg-gray-50 p-3 text-sm">
-          <span className="font-medium">Changed since your last brew:</span>{" "}
-          {sinceLastBrew.join(" · ")}
+      {revertVersionId && (
+        <div className="flex flex-col gap-2 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <span>Your last brew was worse than the one before it.</span>
+          <form action={revertDraftToVersion.bind(null, id, revertVersionId)}>
+            <button className="rounded border border-amber-400 px-3 py-1.5 font-medium">
+              Revert to previous settings
+            </button>
+          </form>
         </div>
       )}
 
@@ -261,47 +245,18 @@ export default async function RecipePage({
         </>
       )}
 
-      <section className="border-t border-gray-200 pt-4">
-        <h2 className="mb-2 text-sm font-semibold">Log a brew</h2>
-        <form action={logBrew.bind(null, id)} className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Rating</span>
-            <select
-              name="rating"
-              className="w-32 rounded border border-gray-300 px-3 py-2"
-              defaultValue=""
-            >
-              <option value="">—</option>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <option key={n} value={n}>
-                  {"★".repeat(n)} ({n})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Tasting notes</span>
-            <textarea
-              name="notes"
-              rows={2}
-              className="rounded border border-gray-300 px-3 py-2"
-              placeholder="Bright, a little sour, thin body…"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Change next time</span>
-            <textarea
-              name="changeNext"
-              rows={2}
-              className="rounded border border-gray-300 px-3 py-2"
-              placeholder="Grind a touch finer; extend bloom to 0:50…"
-            />
-          </label>
-          <button className="self-start rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
-            Log brew
-          </button>
-        </form>
-      </section>
+      {wontRepeat.length > 0 && (
+        <details className="rounded border border-gray-200 text-sm">
+          <summary className="cursor-pointer select-none px-3 py-2 font-medium text-gray-700">
+            Tried — didn&apos;t help ({wontRepeat.length})
+          </summary>
+          <ul className="flex flex-col gap-1 border-t border-gray-200 p-3 text-gray-500">
+            {wontRepeat.map((w, i) => (
+              <li key={i}>✗ {w}</li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {logs.length > 0 && (
         <details className="rounded border border-gray-200 text-sm">
@@ -313,6 +268,7 @@ export default async function RecipePage({
               <thead className="text-gray-500">
                 <tr className="border-b border-gray-200">
                   <th className="p-2 font-medium">Date</th>
+                  <th className="p-2 font-medium">vs last</th>
                   <th className="p-2 font-medium">Rating</th>
                   <th className="p-2 font-medium">Recipe</th>
                   <th className="p-2 font-medium">Changed</th>
@@ -324,9 +280,8 @@ export default async function RecipePage({
                   const thisSnap = l.recipeVersionId
                     ? snapById.get(l.recipeVersionId)
                     : undefined;
-                  const prevLog = logs[i + 1];
-                  const prevSnap = prevLog?.recipeVersionId
-                    ? snapById.get(prevLog.recipeVersionId)
+                  const prevSnap = logs[i + 1]?.recipeVersionId
+                    ? snapById.get(logs[i + 1].recipeVersionId!)
                     : undefined;
                   const changes =
                     thisSnap && prevSnap
@@ -339,6 +294,9 @@ export default async function RecipePage({
                     >
                       <td className="whitespace-nowrap p-2 text-gray-500">
                         {l.brewedAt.toISOString().slice(0, 10)}
+                      </td>
+                      <td className="whitespace-nowrap p-2 text-gray-600">
+                        {outcomeSymbol(l.outcome)}
                       </td>
                       <td className="whitespace-nowrap p-2 text-amber-500">
                         {l.rating != null ? "★".repeat(l.rating) : "—"}

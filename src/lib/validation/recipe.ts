@@ -219,6 +219,31 @@ export function formToVersionInput(v: RecipeFormValues): RecipeVersionInput {
   };
 }
 
+// --- Brew log (guided "Brew this" flow) ------------------------------------
+
+export const BREW_OUTCOMES = ["better", "same", "worse"] as const;
+export const brewOutcomeSchema = z.enum(BREW_OUTCOMES);
+export type BrewOutcome = z.infer<typeof brewOutcomeSchema>;
+
+/**
+ * What the guided Brew flow submits: optional quick adjustments applied to the
+ * recipe before this brew (the independent scalar levers), plus how it went.
+ * Water/ratio/pour-schedule changes go through the full recipe editor instead.
+ */
+export const brewLogPayloadSchema = z.object({
+  grindSetting: z.string().trim().max(120).optional(),
+  doseGrams: z.number().positive().max(200).optional(),
+  waterTempC: z.number().min(1).max(100).optional(),
+  bloomWaterGrams: z.number().nonnegative().max(500).optional(),
+  bloomSeconds: z.number().int().nonnegative().max(600).optional(),
+
+  outcome: brewOutcomeSchema.optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  notes: z.string().trim().max(2000).optional(),
+  changeNext: z.string().trim().max(2000).optional(),
+});
+export type BrewLogPayload = z.infer<typeof brewLogPayloadSchema>;
+
 /** Rebuild cumulative form values from stored version fields (for editing). */
 export function versionToFormPours(
   bloomWaterGrams: number,

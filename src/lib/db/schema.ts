@@ -20,6 +20,11 @@ import {
 export const brewMethodEnum = pgEnum("brew_method", BREW_METHODS);
 export const roastLevelEnum = pgEnum("roast_level", ROAST_LEVELS);
 export const visibilityEnum = pgEnum("visibility", VISIBILITIES);
+export const brewOutcomeEnum = pgEnum("brew_outcome", [
+  "better",
+  "same",
+  "worse",
+]);
 
 /**
  * Profile row, one per Supabase auth user. `id` matches auth.users.id (populated
@@ -137,6 +142,8 @@ export const brewLogs = pgTable(
     ),
     rating: integer("rating"),
     notes: text("notes"),
+    /** How this brew compared to the previous one. Null for the first brew. */
+    outcome: brewOutcomeEnum("outcome"),
     /** "What I'd change next time" — surfaced on the recipe before the next brew. */
     changeNext: text("change_next"),
     brewedAt: timestamp("brewed_at", { withTimezone: true })
