@@ -10,7 +10,7 @@ import {
   jsonb,
   index,
 } from "drizzle-orm/pg-core";
-import type { PourStep } from "@/lib/validation/recipe";
+import type { PourStep, ActualPour } from "@/lib/validation/recipe";
 import {
   BREW_METHODS,
   ROAST_LEVELS,
@@ -212,6 +212,8 @@ export const brewLogs = pgTable(
     outcome: brewOutcomeEnum("outcome"),
     /** "What I'd change next time" — surfaced on the recipe before the next brew. */
     changeNext: text("change_next"),
+    /** Actual per-step pour times captured by the timer (plan vs actual). */
+    actualPours: jsonb("actual_pours").$type<ActualPour[]>(),
     brewedAt: timestamp("brewed_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

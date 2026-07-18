@@ -233,6 +233,14 @@ export const BREW_OUTCOMES = ["better", "same", "worse"] as const;
 export const brewOutcomeSchema = z.enum(BREW_OUTCOMES);
 export type BrewOutcome = z.infer<typeof brewOutcomeSchema>;
 
+/** One timeline step's planned vs actual time, captured by the brew timer. */
+export const actualPourSchema = z.object({
+  label: z.string().max(40),
+  plannedSec: z.number().int().nonnegative(),
+  actualSec: z.number().int().nonnegative(),
+});
+export type ActualPour = z.infer<typeof actualPourSchema>;
+
 /**
  * What the guided Brew flow submits: optional quick adjustments applied to the
  * recipe before this brew (the independent scalar levers), plus how it went.
@@ -249,6 +257,7 @@ export const brewLogPayloadSchema = z.object({
   rating: z.number().int().min(1).max(5).optional(),
   notes: z.string().trim().max(2000).optional(),
   changeNext: z.string().trim().max(2000).optional(),
+  actuals: z.array(actualPourSchema).max(30).optional(),
 });
 export type BrewLogPayload = z.infer<typeof brewLogPayloadSchema>;
 

@@ -50,6 +50,7 @@ export default async function BrewPage({
     bloomWaterGrams:
       draft.bloomWaterGrams != null ? String(draft.bloomWaterGrams) : "",
     bloomClock: secondsToClock(draft.bloomSeconds ?? 0),
+    pours: draft.pours ?? [],
   };
 
   return <BrewFlow initial={initial} />;

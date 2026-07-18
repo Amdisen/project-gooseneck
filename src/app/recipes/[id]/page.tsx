@@ -317,7 +317,20 @@ export default async function RecipePage({
                             → {l.changeNext}
                           </span>
                         )}
-                        {!l.notes && !l.changeNext && "—"}
+                        {l.actualPours && l.actualPours.length > 0 && (
+                          <span className="block text-gray-400">
+                            ⏱ timed ·{" "}
+                            {secondsToClock(
+                              Math.max(
+                                ...l.actualPours.map((a) => a.actualSec),
+                              ),
+                            )}
+                          </span>
+                        )}
+                        {!l.notes &&
+                          !l.changeNext &&
+                          !l.actualPours?.length &&
+                          "—"}
                       </td>
                     </tr>
                   );

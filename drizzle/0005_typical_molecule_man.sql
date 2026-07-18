@@ -1,0 +1,1 @@
+ALTER TABLE "brew_logs" ADD COLUMN "actual_pours" jsonb;

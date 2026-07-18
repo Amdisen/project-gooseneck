@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { computeRatio, parseClock } from "@/lib/validation/recipe";
+import {
+  computeRatio,
+  parseClock,
+  type ActualPour,
+  type PourStep,
+} from "@/lib/validation/recipe";
 import { brewAndLog } from "../../actions";
+import { BrewTimer, type TimerStep } from "./brew-timer";
 
 export type BrewInitial = {
   recipeId: string;
@@ -16,6 +22,7 @@ export type BrewInitial = {
   waterTempC: string;
   bloomWaterGrams: string;
   bloomClock: string;
+  pours: PourStep[];
 };
 
 const OUTCOMES = [
@@ -35,6 +42,7 @@ export function BrewFlow({ initial }: { initial: BrewInitial }) {
   const [rating, setRating] = useState("");
   const [notes, setNotes] = useState("");
   const [changeNext, setChangeNext] = useState("");
+  const [actuals, setActuals] = useState<ActualPour[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -43,6 +51,25 @@ export function BrewFlow({ initial }: { initial: BrewInitial }) {
     Number.isFinite(doseNum) && doseNum > 0
       ? computeRatio(doseNum, initial.waterGrams)
       : null;
+
+  // Timer timeline from the (possibly adjusted) bloom + the recipe's pours.
+  const timerSteps = useMemo<TimerStep[]>(() => {
+    const bw = parseFloat(bloomWater) || 0;
+    const bloomSec = parseClock(bloomTime) ?? 0;
+    const out: TimerStep[] = [
+      { label: "Bloom", targetTotal: Math.round(bw), endAtSec: bloomSec },
+    ];
+    let running = bw;
+    initial.pours.forEach((p, i) => {
+      running += p.waterGrams;
+      out.push({
+        label: `Pour ${i + 1}`,
+        targetTotal: Math.round(running),
+        endAtSec: p.stepEndAtSec,
+      });
+    });
+    return out;
+  }, [bloomWater, bloomTime, initial.pours]);
 
   const field = "rounded border border-gray-300 px-3 py-2";
 
@@ -65,6 +92,7 @@ export function BrewFlow({ initial }: { initial: BrewInitial }) {
       rating: num(rating),
       notes: notes.trim() || undefined,
       changeNext: changeNext.trim() || undefined,
+      actuals: actuals.length ? actuals : undefined,
     };
     startTransition(async () => {
       try {
@@ -180,28 +208,28 @@ export function BrewFlow({ initial }: { initial: BrewInitial }) {
         </div>
       )}
 
-      {/* Step 2 — brew */}
+      {/* Step 2 — guided timer */}
       {step === 1 && (
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-gray-700">
-            Brew your coffee now. When it&apos;s in the cup, continue to record
-            how it went.
-          </p>
-          <p className="text-xs text-gray-400">
-            (A guided timer will live here later.)
-          </p>
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-3">
+          <BrewTimer
+            steps={timerSteps}
+            onDone={(a) => {
+              setActuals(a);
+              setStep(2);
+            }}
+          />
+          <div className="flex justify-between text-sm">
             <button
               onClick={() => setStep(0)}
-              className="rounded border border-gray-300 px-4 py-2 font-medium"
+              className="text-gray-500 underline"
             >
-              Back
+              ← Adjust
             </button>
             <button
               onClick={() => setStep(2)}
-              className="rounded bg-gray-900 px-4 py-2 font-medium text-white"
+              className="text-gray-500 underline"
             >
-              I brewed it
+              Skip timer →
             </button>
           </div>
         </div>

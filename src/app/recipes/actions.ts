@@ -255,6 +255,7 @@ export async function brewAndLog(recipeId: string, payload: unknown) {
     rating: p.rating ?? null,
     notes: p.notes || null,
     changeNext: p.changeNext || null,
+    actualPours: p.actuals ?? null,
   });
 
   revalidatePath(`/recipes/${recipeId}`);
