@@ -115,6 +115,7 @@ export const recipes = pgTable(
     title: text("title").notNull(),
     method: brewMethodEnum("method").notNull().default("v60"),
     visibility: visibilityEnum("visibility").notNull().default("private"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
     currentVersionId: uuid("current_version_id"),
     forkedFromRecipeId: uuid("forked_from_recipe_id"),
     // App-enforced references to the user's library (recipe still snapshots values).

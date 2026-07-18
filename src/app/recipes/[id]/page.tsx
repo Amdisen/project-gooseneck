@@ -6,7 +6,7 @@ import { recipes, recipeVersions, brewLogs } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { secondsToClock } from "@/lib/validation/recipe";
 import { diffSnapshots } from "@/lib/recipe-diff";
-import { deleteRecipe, revertDraftToVersion } from "../actions";
+import { deleteRecipe, revertDraftToVersion, setVisibility } from "../actions";
 
 const outcomeSymbol = (o: string | null) =>
   o === "better" ? "▲ better" : o === "worse" ? "▼ worse" : o === "same" ? "= same" : "—";
@@ -113,6 +113,32 @@ export default async function RecipePage({
           </p>
         )}
       </div>
+
+      <section className="flex items-center justify-between rounded border border-gray-200 p-3 text-sm">
+        <span>
+          {recipe.visibility === "public" ? (
+            <>
+              Public ·{" "}
+              <Link href={`/r/${id}`} className="underline">
+                View public page
+              </Link>
+            </>
+          ) : (
+            "Private"
+          )}
+        </span>
+        <form
+          action={setVisibility.bind(
+            null,
+            id,
+            recipe.visibility !== "public",
+          )}
+        >
+          <button className="rounded border border-gray-300 px-3 py-1.5 font-medium">
+            {recipe.visibility === "public" ? "Unpublish" : "Publish"}
+          </button>
+        </form>
+      </section>
 
       {/* Before you brew */}
       <section className="flex flex-col gap-3 rounded border border-gray-200 p-4">

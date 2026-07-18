@@ -48,6 +48,9 @@ export default async function RecipesPage() {
       )}
 
       <p className="mt-6 flex gap-4">
+        <Link href="/feed" className="text-sm text-gray-500 underline">
+          Discover
+        </Link>
         <Link href="/library" className="text-sm text-gray-500 underline">
           Library
         </Link>

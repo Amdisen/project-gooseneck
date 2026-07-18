@@ -43,6 +43,13 @@
       "when": 1784396890053,
       "tag": "0005_typical_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784397493380,
+      "tag": "0006_worried_iceman",
+      "breakpoints": true
     }
   ]
 }

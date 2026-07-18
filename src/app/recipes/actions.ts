@@ -335,3 +335,19 @@ export async function deleteRecipe(recipeId: string) {
   revalidatePath("/recipes");
   redirect("/recipes");
 }
+
+/** Publish (make public) or unpublish (make private) a recipe. */
+export async function setVisibility(recipeId: string, makePublic: boolean) {
+  const user = await requireUser();
+  await requireOwnedRecipe(recipeId, user.id);
+  await db
+    .update(recipes)
+    .set({
+      visibility: makePublic ? "public" : "private",
+      publishedAt: makePublic ? new Date() : null,
+      updatedAt: new Date(),
+    })
+    .where(eq(recipes.id, recipeId));
+  revalidatePath(`/recipes/${recipeId}`);
+  revalidatePath("/feed");
+}
