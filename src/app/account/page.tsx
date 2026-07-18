@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { profiles } from "@/lib/db/schema";
@@ -16,6 +17,9 @@ export default async function AccountPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-col gap-6 p-6">
+      <Link href="/recipes" className="text-sm text-gray-500 underline">
+        ← My recipes
+      </Link>
       <h1 className="text-2xl font-semibold">Your account</h1>
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
