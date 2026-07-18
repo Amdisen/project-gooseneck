@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   recipes,
@@ -8,10 +8,12 @@ import {
   brewLogs,
   profiles,
   brewers,
+  comments,
 } from "@/lib/db/schema";
 import { secondsToClock } from "@/lib/validation/recipe";
 import { getUser } from "@/lib/auth";
 import { forkRecipe } from "@/app/recipes/actions";
+import { addComment, deleteComment, reportComment } from "../actions";
 
 export default async function PublicRecipePage({
   params,
@@ -71,6 +73,19 @@ export default async function PublicRecipePage({
           (rated.reduce((s, l) => s + (l.rating ?? 0), 0) / rated.length) * 10,
         ) / 10
       : null;
+
+  const commentRows = await db
+    .select({
+      id: comments.id,
+      body: comments.body,
+      createdAt: comments.createdAt,
+      userId: comments.userId,
+      author: profiles.displayName,
+    })
+    .from(comments)
+    .innerJoin(profiles, eq(profiles.id, comments.userId))
+    .where(and(eq(comments.recipeId, id), isNull(comments.hiddenAt)))
+    .orderBy(desc(comments.createdAt));
 
   const bloomWater = draft?.bloomWaterGrams ?? 0;
   let running = bloomWater;
@@ -251,6 +266,66 @@ export default async function PublicRecipePage({
           </ul>
         </section>
       )}
+
+      <section>
+        <h2 className="mb-2 text-sm font-semibold">
+          Comments ({commentRows.length})
+        </h2>
+        {user ? (
+          <form
+            action={addComment.bind(null, id)}
+            className="mb-3 flex flex-col gap-2"
+          >
+            <textarea
+              name="body"
+              required
+              maxLength={1000}
+              rows={2}
+              className="rounded border border-gray-300 px-3 py-2 text-sm"
+              placeholder="Share how it went, or a tip…"
+            />
+            <button className="self-start rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
+              Post comment
+            </button>
+          </form>
+        ) : (
+          <p className="mb-3 text-sm text-gray-500">
+            <Link href="/login" className="underline">
+              Sign in
+            </Link>{" "}
+            to comment.
+          </p>
+        )}
+        {commentRows.length === 0 ? (
+          <p className="text-sm text-gray-400">No comments yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-3 text-sm">
+            {commentRows.map((c) => (
+              <li key={c.id} className="rounded border border-gray-200 p-3">
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>{c.author ?? "A Gooseneck user"}</span>
+                  <span>{c.createdAt.toISOString().slice(0, 10)}</span>
+                </div>
+                <p className="mt-1 whitespace-pre-wrap">{c.body}</p>
+                <div className="mt-1 flex gap-3 text-xs">
+                  {(user?.id === c.userId || user?.id === recipe.ownerId) && (
+                    <form action={deleteComment.bind(null, id, c.id)}>
+                      <button className="text-red-600 underline">Delete</button>
+                    </form>
+                  )}
+                  {user && user.id !== c.userId && (
+                    <form action={reportComment.bind(null, id, c.id)}>
+                      <button className="text-gray-400 underline">
+                        Report
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </main>
   );
 }

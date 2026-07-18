@@ -228,7 +228,29 @@ export const brewLogs = pgTable(
   ],
 );
 
+/** A comment on a public recipe. */
+export const comments = pgTable(
+  "comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    recipeId: uuid("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+    reportedAt: timestamp("reported_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("comments_recipe_idx").on(t.recipeId)],
+);
+
 export type Profile = typeof profiles.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
 export type Recipe = typeof recipes.$inferSelect;
 export type RecipeVersion = typeof recipeVersions.$inferSelect;
 export type BrewLog = typeof brewLogs.$inferSelect;
