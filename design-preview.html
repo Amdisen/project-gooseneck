@@ -13,11 +13,12 @@
     --border:#E4E4E7; --border-strong:#D4D4D8;
     --text:#111111; --text-secondary:#52525B; --text-muted:#A1A1AA; --fg-inverse:#FAFAFA;
     --danger:#C0392B; --success:#2E7D5B;
-    --accent:#DD5B2E; --accent-contrast:#FFFFFF;
+    --brand:#DD5B2E; --brand-contrast:#FFFFFF;
     --font-display:'Space Grotesk',system-ui,sans-serif;
     --font-sans:'Inter',system-ui,sans-serif;
     --font-mono:'JetBrains Mono',ui-monospace,monospace;
-    --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:16px; --r-pill:9999px;
+    /* tightened, Geist-style: rectangular components, small radii */
+    --r-sm:4px; --r-md:6px; --r-lg:8px; --r-xl:12px; --r-pill:9999px;
     --e1:0 1px 2px rgba(0,0,0,.04); --e2:0 8px 30px rgba(0,0,0,.08);
     --grid:rgba(0,0,0,.045);
   }
@@ -26,7 +27,7 @@
     --border:#262626; --border-strong:#3A3A3D;
     --text:#FAFAFA; --text-secondary:#A1A1AA; --text-muted:#71717A; --fg-inverse:#0A0A0A;
     --danger:#F0625A; --success:#4CB98A;
-    --accent:#F26A3C; --accent-contrast:#111111;
+    --brand:#F26A3C; --brand-contrast:#111111;
     --e1:0 1px 2px rgba(0,0,0,.4); --e2:0 12px 40px rgba(0,0,0,.6);
     --grid:rgba(255,255,255,.05);
   }
@@ -51,24 +52,24 @@
   .brand{font-family:var(--font-display);font-weight:600;font-size:19px;letter-spacing:-.02em}
   .brand span{color:var(--text-muted);font-weight:500}
   .navlinks{display:flex;gap:24px;margin-left:16px;color:var(--text-secondary);font-size:14px}
-  .navlinks a:hover{color:var(--accent)}
+  .navlinks a:hover{color:var(--brand)}
   .spacer{flex:1}
 
-  /* buttons */
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 20px;
-    border-radius:var(--r-pill);font-family:var(--font-sans);font-weight:500;font-size:15px;
-    border:1px solid transparent;cursor:pointer;text-decoration:none;transition:all .15s;white-space:nowrap}
+  /* buttons — rectangular, tight radius (no pills) */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:40px;padding:0 14px;
+    border-radius:var(--r-md);font-family:var(--font-sans);font-weight:500;font-size:14px;
+    border:1px solid transparent;cursor:pointer;text-decoration:none;transition:all .12s;white-space:nowrap}
   .btn-primary{background:var(--text);color:var(--fg-inverse)}
-  .btn-primary:hover{opacity:.88}
+  .btn-primary:hover{background:var(--text-secondary)}
   .btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border-strong)}
-  .btn-secondary:hover{background:var(--surface-2)}
-  .btn-ghost{background:transparent;color:var(--text)}
-  .btn-ghost:hover{background:var(--surface-2)}
-  .btn-lg{height:44px;font-size:15px}
-  .btn-sm{height:32px;font-size:13px;padding:0 14px}
-  .btn-icon{width:40px;height:40px;padding:0;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border)}
+  .btn-secondary:hover{background:var(--surface-2);border-color:var(--text-muted)}
+  .btn-ghost{background:transparent;color:var(--text-secondary)}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+  .btn-lg{height:44px;font-size:15px;padding:0 18px}
+  .btn-sm{height:32px;font-size:13px;padding:0 11px}
+  .btn-icon{width:36px;height:36px;padding:0;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border)}
   .btn-icon:hover{background:var(--surface-2)}
-  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
   /* hero */
   .hero{position:relative;padding:96px 0 88px;overflow:hidden;border-top:none}
@@ -76,7 +77,7 @@
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
     background-size:40px 40px;mask-image:radial-gradient(circle at 50% 40%,#000,transparent 78%)}
   .hero .inner{position:relative}
-  .hero .eyebrow{color:var(--accent)}
+  .hero .eyebrow{color:var(--brand)}
   .hero h1{font-size:clamp(2.6rem,6vw,4.4rem);font-weight:600;max-width:16ch}
   .hero p{color:var(--text-secondary);font-size:18px;max-width:52ch;margin:20px 0 32px}
   .videobox{position:relative;margin-top:56px;height:300px;border-radius:var(--r-xl);
@@ -86,7 +87,7 @@
       repeating-linear-gradient(115deg, rgba(255,255,255,.04) 0 2px, transparent 2px 9px)}
   .videobox .label{position:absolute;left:20px;bottom:18px;color:#fff;font-family:var(--font-mono);
     font-size:12px;opacity:.85;letter-spacing:.04em}
-  .videobox .play{position:absolute;inset:0;margin:auto;width:64px;height:64px;border-radius:50%;
+  .videobox .play{position:absolute;inset:0;margin:auto;width:60px;height:60px;border-radius:var(--r-md);
     background:rgba(255,255,255,.14);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3);
     display:flex;align-items:center;justify-content:center}
   .videobox .play svg{fill:#fff}
@@ -97,7 +98,7 @@
 
   /* type scale */
   .type-row{display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid var(--border)}
-  .type-row .tag{width:120px;flex:none;color:var(--text-muted);font-size:12px;font-family:var(--font-mono)}
+  .type-row .tag{width:130px;flex:none;color:var(--text-muted);font-size:12px;font-family:var(--font-mono)}
   .d-display{font-family:var(--font-display);font-size:44px;font-weight:600;letter-spacing:-.02em}
   .d-h2{font-family:var(--font-display);font-size:32px;font-weight:600}
   .d-h3{font-family:var(--font-display);font-size:24px;font-weight:500}
@@ -107,48 +108,53 @@
   /* swatches */
   .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
   .sw{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;font-size:12px}
-  .sw .chip{height:56px}
+  .sw .chip-lg{height:56px}
   .sw .meta{padding:8px 10px;background:var(--surface)}
   .sw .meta code{font-family:var(--font-mono);color:var(--text-secondary);font-size:11px}
 
   /* cards / grid */
   .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;
-    transition:border-color .15s,box-shadow .15s;cursor:pointer}
+    transition:border-color .12s,box-shadow .12s;cursor:pointer}
   .card:hover{border-color:var(--border-strong);box-shadow:var(--e1)}
-  .card .media{aspect-ratio:3/2;
-    background:radial-gradient(120% 120% at 30% 20%,#4b4b4b,#151515);position:relative}
+  .card .media{aspect-ratio:3/2;background:radial-gradient(120% 120% at 30% 20%,#4b4b4b,#151515)}
   .card .media.two{background:radial-gradient(120% 120% at 70% 30%,#5a5a5a,#111)}
   .card .media.three{background:radial-gradient(120% 120% at 40% 60%,#666,#181818)}
   .card .body{padding:16px 18px 18px}
   .card .toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   .card h3{font-size:19px;font-weight:600;letter-spacing:-.01em}
   .card .meta{display:flex;align-items:center;gap:10px;margin-top:10px;color:var(--text-secondary);font-size:13px}
-  .avatar{width:22px;height:22px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border)}
+  .avatar{width:22px;height:22px;border-radius:var(--r-sm);background:var(--surface-3);border:1px solid var(--border)}
   .card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;
     padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary)}
 
-  .chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:var(--r-pill);
-    background:var(--surface-2);font-size:12px;font-weight:500;color:var(--text-secondary)}
+  /* badges — small rounded rectangles with a hairline (no pills) */
+  .chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:var(--r-sm);
+    background:var(--surface-2);border:1px solid var(--border);font-size:12px;font-weight:400;color:var(--text-secondary)}
   .chip.mono{font-family:var(--font-mono)}
-  .chip.outline{background:transparent;border:1px solid var(--border-strong)}
-  .badge-solid{background:var(--text);color:var(--fg-inverse)}
+  .chip.outline{background:transparent;border-color:var(--border-strong)}
+  .chip.solid{background:var(--text);color:var(--fg-inverse);border-color:var(--text)}
+  .stars{letter-spacing:2px;font-size:14px;color:var(--brand)}
 
-  .stars{letter-spacing:2px;font-size:14px;color:var(--accent)}
+  /* segmented tabs */
+  .segmented{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-md);padding:3px;background:var(--surface-2);gap:2px}
+  .segmented button{border:none;background:transparent;color:var(--text-secondary);font-family:var(--font-sans);
+    font-size:13px;font-weight:500;padding:6px 12px;border-radius:var(--r-sm);cursor:pointer}
+  .segmented button.on{background:var(--surface);color:var(--text);box-shadow:var(--e1)}
 
   /* form */
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   .field label{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
-  .input{width:100%;height:44px;padding:0 14px;background:var(--surface);border:1px solid var(--border);
-    border-radius:var(--r-md);color:var(--text);font-family:var(--font-sans);font-size:15px;outline:none;transition:.15s}
-  .input:focus{border-color:var(--text);box-shadow:0 0 0 3px color-mix(in srgb,var(--text) 24%,transparent)}
+  .input{width:100%;height:40px;padding:0 12px;background:var(--surface);border:1px solid var(--border-strong);
+    border-radius:var(--r-md);color:var(--text);font-family:var(--font-sans);font-size:15px;outline:none;transition:.12s}
+  .input:focus{border-color:var(--text);box-shadow:0 0 0 3px color-mix(in srgb,var(--text) 22%,transparent)}
   .input.mono{font-family:var(--font-mono)}
   .input-affix{position:relative}
-  .input-affix .unit{position:absolute;right:14px;top:0;height:44px;display:flex;align-items:center;
+  .input-affix .unit{position:absolute;right:12px;top:0;height:40px;display:flex;align-items:center;
     color:var(--text-muted);font-family:var(--font-mono);font-size:14px}
   .help{font-size:13px;color:var(--text-secondary);margin-top:6px}
-  .upload{border:1.5px dashed var(--border-strong);border-radius:var(--r-lg);padding:28px;text-align:center;
-    color:var(--text-secondary);background:var(--surface)}
+  .upload{border:1px dashed var(--border-strong);border-radius:var(--r-md);padding:28px;text-align:center;
+    color:var(--text-secondary);background:var(--surface-2)}
   .upload svg{opacity:.6;margin-bottom:8px}
 
   /* timeline */
@@ -157,9 +163,9 @@
     padding:16px 18px;border-bottom:1px solid var(--border)}
   .step:last-child{border-bottom:none}
   .step.bloom{background:var(--surface-2)}
-  .step.bloom .idx{color:var(--accent);border-color:var(--accent)}
-  .step .idx{width:32px;height:32px;border-radius:50%;border:1px solid var(--border-strong);
+  .step .idx{width:32px;height:32px;border-radius:var(--r-md);border:1px solid var(--border-strong);
     display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px}
+  .step.bloom .idx{color:var(--brand);border-color:var(--brand)}
   .step .lbl{font-family:var(--font-display);font-weight:500;font-size:16px}
   .step .sub{color:var(--text-secondary);font-size:13px}
   .step .nums{text-align:right;font-family:var(--font-mono);font-size:14px}
@@ -170,27 +176,29 @@
     padding:36px;text-align:center;position:relative;overflow:hidden}
   .timer .phase{font-family:var(--font-display);font-weight:600;font-size:22px}
   .timer .big{font-family:var(--font-mono);font-weight:500;font-size:clamp(3.5rem,14vw,6rem);line-height:1;margin:6px 0}
-  .timer .target{font-family:var(--font-mono);font-size:28px;color:var(--accent)}
+  .timer .target{font-family:var(--font-mono);font-size:28px;color:var(--brand)}
   .timer .next{color:var(--text-secondary);font-size:14px;margin-top:6px}
   .ring{margin:18px auto 8px;display:block}
   .ring .track{stroke:var(--surface-3);fill:none}
-  .ring .prog{stroke:var(--accent);fill:none;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+  .ring .prog{stroke:var(--brand);fill:none;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
   .timer .controls{display:flex;gap:12px;justify-content:center;margin-top:22px}
-  .timer .controls .btn-primary{height:52px;padding:0 40px;font-size:16px}
-  .timer .controls .btn-secondary{height:52px}
+  .timer .controls .btn-primary{height:48px;padding:0 36px;font-size:16px}
+  .timer .controls .btn-secondary{height:48px}
 
-  /* bento */
-  .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  .bento .b{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;min-height:150px}
-  .bento .b h4{font-size:17px;font-weight:600;margin-bottom:6px}
-  .bento .b p{color:var(--text-secondary);font-size:14px;margin:0}
-  .bento .icon{width:36px;height:36px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border);
-    display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  /* feature grid — hairline-divided (Vercel-style) */
+  .featgrid{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr)}
+  .featgrid .cell{padding:26px 24px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .featgrid .cell:nth-child(3n){border-right:none}
+  .featgrid .cell:nth-last-child(-n+3){border-bottom:none}
+  .featgrid .icon{width:22px;height:22px;color:var(--text);margin-bottom:14px}
+  .featgrid h4{font-size:16px;font-weight:600;margin-bottom:6px}
+  .featgrid p{color:var(--text-secondary);font-size:14px;margin:0;line-height:1.5}
 
   footer{border-top:1px solid var(--border);padding:40px 0;color:var(--text-muted);font-size:13px}
 
   @media(max-width:820px){
-    .cards,.bento{grid-template-columns:1fr}
+    .cards,.featgrid{grid-template-columns:1fr}
+    .featgrid .cell{border-right:none}
     .grid2{grid-template-columns:1fr}
     .navlinks{display:none}
   }
@@ -236,38 +244,42 @@
 <!-- TYPOGRAPHY -->
 <section><div class="wrap">
   <div class="sec-head"><div class="eyebrow">Foundations</div><h2>Typography</h2>
-    <p>Space Grotesk for headings, Inter for body, JetBrains Mono for every number a brewer reads.</p></div>
+    <p>Space Grotesk for headings, Inter (Light) for body, JetBrains Mono for every number a brewer reads.</p></div>
   <div class="type-row"><span class="tag">Display / SG</span><span class="d-display">Ethiopia Yirgacheffe</span></div>
   <div class="type-row"><span class="tag">H2 / SG 600</span><span class="d-h2">How it works</span></div>
   <div class="type-row"><span class="tag">H3 / SG 500</span><span class="d-h3">Chemex weekend batch</span></div>
-  <div class="type-row"><span class="tag">Body / Inter</span><span class="d-body">A single blooming pour, then three even pulses to 350g.</span></div>
+  <div class="type-row"><span class="tag">Body / Inter 300</span><span class="d-body">A single blooming pour, then three even pulses to 350g.</span></div>
   <div class="type-row"><span class="tag">Numeric / Mono</span><span class="d-mono">22g · 1:16 · 350g · 93°C · 02:15</span></div>
 </div></section>
 
 <!-- COLOR -->
 <section><div class="wrap">
   <div class="sec-head"><div class="eyebrow">Foundations</div><h2>Color — monochrome</h2>
-    <p>Neutral grays plus near-black/near-white. Switch the theme (top-right) to see both. Hue only enters through imagery.</p></div>
+    <p>Neutral grays plus near-black/near-white. Switch the theme (top-right) to see both. Hue only enters through imagery + the single accent.</p></div>
   <div class="swatches" id="swatches"></div>
 </div></section>
 
 <!-- BUTTONS -->
 <section><div class="wrap">
-  <div class="sec-head"><div class="eyebrow">Components</div><h2>Buttons &amp; chips</h2></div>
+  <div class="sec-head"><div class="eyebrow">Components</div><h2>Buttons, badges &amp; tabs</h2>
+    <p>Rectangular buttons at a tight 6px radius, small bordered badges, and a segmented control — the precise, Geist-style component language.</p></div>
   <div class="row" style="margin-bottom:20px">
     <button class="btn btn-primary">Start brew</button>
     <button class="btn btn-secondary">Save version</button>
     <button class="btn btn-ghost">Cancel</button>
-    <button class="btn btn-secondary">Fork this recipe</button>
-    <button class="btn-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+    <button class="btn btn-secondary">Fork recipe</button>
+    <button class="btn-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
   </div>
-  <div class="row">
+  <div class="row" style="margin-bottom:20px">
     <span class="chip">V60</span>
     <span class="chip">Light roast</span>
     <span class="chip mono">1:16</span>
     <span class="chip outline">Private</span>
-    <span class="chip badge-solid">Public</span>
+    <span class="chip solid">Public</span>
     <span class="chip">Floral</span><span class="chip">Citrus</span>
+  </div>
+  <div class="segmented">
+    <button class="on">Overview</button><button>Timeline</button><button>Brews</button><button>Versions</button>
   </div>
 </div></section>
 
@@ -366,32 +378,32 @@
   </div>
 </div></section>
 
-<!-- BENTO -->
+<!-- FEATURE GRID -->
 <section><div class="wrap">
-  <div class="sec-head"><div class="eyebrow">Why Gooseneck</div><h2>Everything a repeatable brew needs</h2></div>
-  <div class="bento">
-    <div class="b"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2v6a6 6 0 0012 0V2"/><path d="M6 22h12"/></svg></div>
+  <div class="sec-head"><div class="eyebrow">Why Gooseneck</div><h2>Everything a repeatable brew needs</h2>
+    <p>The hairline-divided feature grid — cells split by 1px rules, a line icon, bold title, quiet copy.</p></div>
+  <div class="featgrid">
+    <div class="cell"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2v6a6 6 0 0012 0V2"/><path d="M6 22h12"/></svg></div>
       <h4>Structured recipes</h4><p>Bean, grind, dose, water and every pour — captured with real numbers.</p></div>
-    <div class="b"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></div>
+    <div class="cell"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></div>
       <h4>Guided timer</h4><p>A live, step-by-step brew you can follow phone-in-hand.</p></div>
-    <div class="b"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="9" r="3"/><path d="M6 9v6M18 12a9 9 0 01-9 9"/></svg></div>
+    <div class="cell"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="9" r="3"/><path d="M6 9v6M18 12a9 9 0 01-9 9"/></svg></div>
       <h4>Version &amp; fork</h4><p>Every edit is a new version. Fork anyone's recipe into your own.</p></div>
-    <div class="b"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7z"/></svg></div>
+    <div class="cell"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7z"/></svg></div>
       <h4>Brew log</h4><p>Rate each cup and note tasting results to see how tweaks land.</p></div>
-    <div class="b"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></div>
+    <div class="cell"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></div>
       <h4>Public discovery</h4><p>Publish and browse recipes from other brewers.</p></div>
-    <div class="b"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+    <div class="cell"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
       <h4>Mobile &amp; desktop</h4><p>Responsive throughout; the timer is tuned for the phone.</p></div>
   </div>
 </div></section>
 
 <footer><div class="wrap row" style="justify-content:space-between">
   <div class="brand" style="font-size:16px"><span>Project</span> Gooseneck</div>
-  <div class="mono" style="font-size:12px">design-preview · monochrome + Space Grotesk / Inter / JetBrains Mono</div>
+  <div class="mono" style="font-size:12px">Space Grotesk / Inter / JetBrains Mono · Geist-style components · Phosphor icons</div>
 </div></footer>
 
 <script>
-  // theme toggle
   var root=document.documentElement, btn=document.getElementById('themeBtn'), ico=document.getElementById('themeIcon');
   var sun='M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm8,152a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V200A8,8,0,0,0,128,192ZM128,72a56,56,0,1,0,56,56A56.06,56.06,0,0,0,128,72Zm101.66,53.66-17,17a8,8,0,0,1-11.32-11.32l17-17a8,8,0,0,1,11.32,11.32ZM54.66,201.34l-17,17A8,8,0,0,1,26.34,207l17-17a8,8,0,0,1,11.32,11.32Zm0-146.68A8,8,0,0,1,43.34,66l-17-17A8,8,0,0,1,37.66,37.66l17,17ZM216,120h24a8,8,0,0,1,0,16H216a8,8,0,0,1,0-16ZM16,128a8,8,0,0,1,8-8H48a8,8,0,0,1,0,16H24A8,8,0,0,1,16,128Z';
   var moon='M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z';
@@ -399,14 +411,13 @@
   setIcon();
   btn.onclick=function(){root.setAttribute('data-theme',root.getAttribute('data-theme')==='dark'?'light':'dark');setIcon();buildSwatches();};
 
-  // color swatches read live from CSS vars
   var tokens=['--bg','--surface','--surface-2','--surface-3','--border','--border-strong','--text','--text-secondary','--text-muted'];
   function buildSwatches(){
     var cs=getComputedStyle(root), host=document.getElementById('swatches'); host.innerHTML='';
     tokens.forEach(function(t){
       var v=cs.getPropertyValue(t).trim();
       var el=document.createElement('div'); el.className='sw';
-      el.innerHTML='<div class="chip" style="background:'+v+';border-bottom:1px solid var(--border)"></div>'+
+      el.innerHTML='<div class="chip-lg" style="background:'+v+';border-bottom:1px solid var(--border)"></div>'+
         '<div class="meta"><div>'+t.replace('--','')+'</div><code>'+v+'</code></div>';
       host.appendChild(el);
     });

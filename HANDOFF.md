@@ -28,7 +28,8 @@ Drizzle ORM · Zod · hosted on Vercel. Fonts via next/font: Space Grotesk / Int
 - **Library** (`/library`): Coffees / Grinders / Brewers (owner-scoped) + pickers with **inline-add** in the recipe form + profile **default** grinder/brewer. Recipes store a soft reference AND a snapshot.
 - **Sharing** (Phase 3): publish/unpublish, public read-only view `/r/[id]` (no auth to view; shows recipe + maker's ratings & tasting notes ONLY — not internals), `/feed` discovery (newest first), **fork** (copies values to a new private recipe, attribution), **comments** (add/delete-own-or-owner + report).
 - **App shell**: persistent `SiteHeader` nav (Discover, My recipes, Library, Account, +New / Sign in). Post-login lands on `/recipes`.
-- **Design pass — increment 1 DONE**: next/font wired to tokens, light/dark theme (`data-theme` + no-flash script + `ThemeToggle`), `Container` width tiers (wide 1200 / app 960 / prose 680 / card 400), header restyled to tokens.
+- **Design pass — increment 1 DONE**: next/font wired to tokens, light/dark theme (`data-theme` + no-flash script + `ThemeToggle`), `Container` width tiers (wide 1200 / app 960 / prose 680 / card 400), header restyled to tokens. Pages BELOW the header still use plain `gray-*` + `max-w-2xl/md` — not yet migrated.
+- **Session handoff system**: this `HANDOFF.md` + `/startup` and `/shutdown` slash commands (`.claude/commands/`) + `CLAUDE.md` pointer.
 
 ## Key files
 - `src/lib/db/schema.ts` — all tables (profiles, recipes, recipe_versions [draft+snapshots], brew_logs, coffees, grinders, brewers, comments).

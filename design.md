@@ -84,12 +84,12 @@ Neutral (true-gray) scale; near-black foreground is the "primary/accent."
 
 The UI is grayscale except for **one accent hue** plus a minimal set of functional status colors. Both are used sparingly and never as decoration.
 
-**Accent — the one hue.** A single warm roast-orange (crema), brightened in dark mode. This is the *only* decorative color in the product.
+**Accent — the one hue.** A single warm roast-orange (crema), brightened in dark mode. This is the *only* decorative color in the product. In code the token is **`--brand`** (Tailwind: `brand`) — deliberately *not* `--accent`, because shadcn/ui reserves `--accent` for a neutral hover surface. Don't conflate them.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `--accent` | `#DD5B2E` | `#F26A3C` | The one pop color |
-| `--accent-contrast` | `#FFFFFF` | `#111111` | Text/icon sitting on an accent fill |
+| `--brand` | `#DD5B2E` | `#F26A3C` | The one pop color (a.k.a. "the accent") |
+| `--brand-contrast` | `#FFFFFF` | `#111111` | Text/icon sitting on a brand fill |
 
 **Where the accent is allowed** (keeping it to a few spots is what makes it read as intentional):
 
@@ -99,7 +99,7 @@ The UI is grayscale except for **one accent hue** plus a minimal set of function
 - The **active/live step marker** in the pour timeline (e.g. Bloom)
 - **Link hover** and **focus rings**
 
-**Not allowed:** primary buttons (they stay black/white pill), large fills, page/section backgrounds, body text, or more than ~2 accent elements in one viewport. When in doubt, leave it gray.
+**Not allowed:** primary buttons (they stay the solid black/white button), large fills, page/section backgrounds, body text, or more than ~2 accent elements in one viewport. When in doubt, leave it gray.
 
 **Functional status** — validation, status, and destructive confirmation only. Modest saturation; always paired with an icon or text (never color alone).
 
@@ -139,7 +139,9 @@ Default body weight is **300 (Light)** — it gives the calm, precise feel. Use 
 
 ### 3.6 Radius
 
-`--r-sm 6` (chips, inputs-inner) · `--r-md 8` (inputs, small cards) · `--r-lg 10` (cards) · `--r-xl 16` (large/bento, image tiles) · `--r-pill 9999` (buttons, tags).
+`--r-sm 4` (chips/badges, inputs-inner) · `--r-md 6` (buttons, inputs, small cards) · `--r-lg 8` (cards) · `--r-xl 12` (large cards, image tiles, media) · `--r-pill 9999` (reserved for rare fully-round elements — status dots, avatars if desired).
+
+**Components are rectangular with tight radii — buttons and badges are NOT pills** (Geist-style precision). This is the component language: rectangular controls, small radii, hairline-divided grids, segmented tabs.
 
 ### 3.7 Borders, elevation, texture
 
@@ -172,11 +174,11 @@ Default body weight is **300 (Light)** — it gives the calm, precise feel. Use 
 
 | Variant | Light | Dark | Shape / size |
 |---|---|---|---|
-| Primary | bg `--text`, text `--fg-inverse` | bg `--text` (white), text `--fg-inverse` (black) | pill; h 44 (lg) / 40 (md) / 32 (sm); px 20; Inter 500 15px |
-| Secondary | bg `--surface`, 1px `--border-strong`, text `--text` | same tokens | pill; hover bg `--surface-2` |
-| Ghost | transparent, text `--text` | same | pill; hover bg `--surface-2` |
-| Icon | square 40 (or pill), optional border | same | Phosphor 20 centered |
-| Destructive | text/border `--danger`; solid `--danger` only on confirm dialogs | same | pill |
+| Primary | bg `--text`, text `--fg-inverse` | bg `--text` (white), text `--fg-inverse` (black) | **rect `--r-md` (6px)**; h 40 (md)/44 (lg)/32 (sm); px 14; Inter 500 14px; hover → `--text-secondary` |
+| Secondary | bg `--surface`, 1px `--border-strong`, text `--text` | same tokens | rect; hover bg `--surface-2`, border `--text-muted` |
+| Ghost | transparent, text `--text-secondary` | same | rect; hover bg `--surface-2`, text `--text` |
+| Icon | square 36, radius `--r-md`, optional border | same | Phosphor 18–20 centered |
+| Destructive | text/border `--danger`; solid `--danger` only on confirm dialogs | same | rect |
 
 States: hover (slight bg/opacity shift), active (translate 0 / `--surface-3`), focus-visible (2px ring `--text` at 40% + 2px offset), disabled (`--text-muted`, no bg). Min tap target 44px on mobile.
 
@@ -193,13 +195,13 @@ States: hover (slight bg/opacity shift), active (translate 0 / `--surface-3`), f
 
 - **Base:** bg `--surface`, 1px `--border`, radius `--r-lg`, padding 24. Interactive hover: border `--border-strong` + `--e1`.
 - **Recipe / feed card:** media top (3:2), body: method chip + visibility, **title** (H3/H4), meta row (author avatar + name, `1:16` mono, dose mono), footer: rating (accent-tinted stars) + brew count. Whole card is the link.
-- **Bento feature card (Deel-style):** larger, `--surface-2` fill, embedded mini-preview (e.g., a timeline snippet or timer mock), title + short description. Used on landing.
+- **Feature grid (Vercel-style):** a single bordered container divided into cells by 1px rules; each cell = Phosphor line icon + bold title + quiet description. This is the default "why Gooseneck" / features layout on the landing page. (A Deel-style filled `--surface-2` bento card remains an option when a cell needs to embed a live UI preview like a timeline snippet or timer mock.)
 
 ### 4.4 Eyebrow, tags, badges
 
 - **Eyebrow:** uppercase 12px `0.1em`, `--text-muted`, above section titles.
-- **Tag/chip (pill):** `--surface-2` fill or 1px border, 13px; method (`V60`), roast level, tasting notes.
-- **Numbered badge:** small square/circle with mono index (`1`–`4`) — used on how-it-works cards (top-left overlay) and timeline steps.
+- **Tag/chip:** small rounded-rectangle (`--r-sm`) with a 1px hairline border, `--surface-2` or transparent fill, 12–13px; method (`V60`), roast level, tasting notes. (Not a pill.)
+- **Numbered badge:** small rounded square (`--r-md`) with mono index (`1`–`4`) — used on how-it-works cards (top-left overlay) and timeline steps.
 - **Visibility badge:** `Private` (outline) / `Public` (filled foreground).
 
 ### 4.5 Numbered step & pour timeline (signature data pattern)
@@ -245,7 +247,7 @@ Full-screen focus mode, mobile-first; dark mode ideal for a dim kitchen.
 
 Breakpoints: `sm 640 · md 768 · lg 1024 · xl 1280`. Content max-width 1200 (marketing) / 960 (app reading). Mobile-first.
 
-- **Landing / marketing:** full-bleed **video hero** (bold Space Grotesk headline + two pill CTAs, optional grid/crosshair frame) → **How it works** (numbered 3–4 steps, Superpower/Biograph) → **feature bento** (Deel) → sample public recipes → footer (Vercel-style, hairline columns).
+- **Landing / marketing:** full-bleed **video hero** (bold Space Grotesk headline + two CTAs, optional grid/crosshair frame) → **How it works** (numbered 3–4 steps, Superpower/Biograph) → **feature grid** (hairline-divided, Vercel-style) → sample public recipes → footer (Vercel-style, hairline columns).
 - **Discovery feed:** sticky sub-header (search + method/roast filters as chips) → responsive card grid (1 col mobile / 2 md / 3 lg). Infinite scroll or "Load more".
 - **Recipe detail:** header (title, author, method chip, visibility, actions: Fork / Log brew / Edit) → params summary (mono grid: dose, water, ratio, temp, grind) → **pour timeline** (§4.5) → prominent **Start brew** CTA → tasting notes / brew log history → version history (`ClockCounterClockwise`). Desktop may use the vertical-tab showcase (§4.6): Overview · Timeline · Brews · Versions.
 - **Brew timer:** §4.8, full-screen route.
@@ -253,24 +255,93 @@ Breakpoints: `sm 640 · md 768 · lg 1024 · xl 1280`. Content max-width 1200 (m
 - **Auth:** centered card on `--bg`, wordmark, email+password fields, `Continue with Google` (secondary pill w/ Google mark), toggle sign-in/up. Minimal, no imagery.
 - **Account / profile:** avatar + name, tabs: My recipes · Brew log · Settings (theme, account). Grid of the user's recipe cards.
 
-## 6. Accessibility
+## 6. Accessibility & responsive (best practices)
+
+This is the quality bar every screen is checked against — see the audit trigger in §9.
+
+**Accessibility**
 
 - Contrast: all text ≥ 4.5:1 (`--text-secondary` verified on `--bg` both themes); large/display ≥ 3:1.
-- Focus-visible rings on every interactive element; logical tab order.
-- Tap targets ≥ 44×44 (timer controls ≥ 56).
+- Focus-visible rings on every interactive element; logical tab/reading order; label every control.
 - Status never by color alone (icon + text); rating uses filled/outline shapes.
 - `prefers-reduced-motion` disables video autoplay, shimmer, parallax.
 - All photos require alt text; timer announces step changes via `aria-live`.
 
-## 7. Implementation notes
+**Responsive & layout**
 
-- **Fonts:** `next/font/google` for Space Grotesk / Inter / JetBrains Mono → expose `--font-display`, `--font-sans`, `--font-mono`; set on `<html>`. Load **Inter 300/400/500/600** (300 is the default body weight), Space Grotesk 400–700, JetBrains Mono 400/500.
+- **Mobile-first.** Author base styles for small screens; layer up with `sm 640 · md 768 · lg 1024 · xl 1280`. Never desktop-first with `max-width` overrides.
+- **Fluid, not fixed.** Headings use `clamp()`; spacing scales; avoid fixed `px` heights on content — use `min-height` and let content grow. Never a horizontal scrollbar on the page body: guard wide content (tables, code, timelines) with `overflow-x:auto` inside its own box; media `max-width:100%`.
+- **Tap targets ≥ 44×44** (timer controls ≥ 56); comfortable spacing between tappable items.
+- **Container queries** for component-level responsiveness (a `RecipeCard` / `PourTimeline` adapts to its container, not just the viewport) where practical.
+- **One nav per viewport.** Desktop top bar, mobile bottom tab bar (§4.7) — never both at once. Full-screen timer hides chrome.
+- **Safe-area insets.** Respect `env(safe-area-inset-*)` for the mobile bottom nav and the full-screen timer (notch / home indicator).
+- **Thumb-zone.** Primary actions reachable one-handed on phones; the brew timer is optimized for phone-in-hand (large numerals, big controls, screen wake-lock).
+- **Mobile inputs.** Correct `type`/`inputmode` (numeric keypad for dose/water/temp), and `capture` for camera photo upload.
+
+**Performance (best practice)**
+
+- **No layout shift (CLS):** every image/media in a fixed aspect-ratio box; `next/image` with responsive `sizes`; reserve space before load.
+- **Lazy-load** offscreen images; prefer CSS for layout over JS.
+- **Fonts** via `next/font` (self-hosted, no FOUT/CLS); only the weights in §3.4.
+- Keep the client bundle lean (Server Components by default; client components only where needed).
+
+**Test viewports** (verify no horizontal scroll, tap-target sizes, and the timer at the smallest width): **360×640** (small phone), **390×844** (modern phone), **768** (tablet), **1024 / 1280 / 1440** (laptop/desktop).
+
+## 7. Tech & component stack
+
+Chosen to match how the reference products are actually built — Vercel's Geist (`geistcn`) registry, Supabase UI, and ElevenLabs UI all sit on the **same base** — and to render this system's tokens with zero friction.
+
+- **Framework:** Next.js (App Router) + React + TypeScript.
+- **Component base:** **shadcn/ui** — Radix primitives + Tailwind, installed via the shadcn CLI (copy-in; you own the component source). This is the common foundation under all three references above, so their look is directly reproducible here.
+- **Primitives:** **Radix UI** (accessible, unstyled) — behavior for dialog/sheet, tabs, dropdown, tooltip, etc.
+- **Styling:** **Tailwind CSS**, driven entirely by the §3 tokens (CSS variables → `tailwind.config`). Components reference tokens, never hex literals.
+- **Icons:** **Phosphor** (`@phosphor-icons/react`), regular weight — swapped in for shadcn's default Lucide (see §3.8).
+- **Fonts:** Space Grotesk / Inter / JetBrains Mono via `next/font/google` (see §3.4).
+- **Optional accelerators:** Supabase UI **auth blocks** for the email + Google sign-in flow; the `vercel:shadcn` skill for CLI/theming during build.
+
+**Applying the design to shadcn components:** run `npx shadcn@latest init`, map the §3 tokens into the generated `globals.css` + `tailwind.config`, then add components (`button`, `card`, `dialog`/`sheet`, `tabs`, `input`, `badge`, …) and restyle them to §4 — **rectangular controls at `--r-md`, hairline borders, monochrome + the single accent**. Point the icon set at Phosphor.
+
+## 8. Component inventory (surface → shared components)
+
+Consistency comes from **reuse**: every surface is composed from the same shared components, which are each built once and read the §3 tokens. Anything appearing on ≥2 surfaces is a shared component — never re-implemented inline.
+
+| Surface | Shared components it MUST use |
+|---|---|
+| **App shell** (every page) | `<SiteHeader>` (top nav), `<MobileNav>` (bottom tabs), `<Container>` (max-width + section rhythm), `<ThemeToggle>` |
+| **Landing** | `<Hero>` (video), `<HowItWorks>` (numbered steps), `<FeatureGrid>` (hairline), `<RecipeCard>`, `<SiteFooter>` |
+| **Feed** | `<Container>`, `<FilterBar>` (chips), `<RecipeCard>`, `<EmptyState>`, `<Skeleton>` |
+| **Recipe detail** | `<RecipeHeader>`, `<ParamGrid>` (mono), `<PourTimeline>`, `<Button>` (Start brew), `<Segmented>`/`<Tabs>`, `<BrewLogList>`, `<VersionList>` |
+| **Brew timer** | `<BrewTimer>` → `<ProgressRing>`, `<TimerControls>` |
+| **Create / edit** | `<RecipeForm>` → `<Field>`, `<NumberField>` (unit adornment), `<PhotoUpload>`, `<PourStepEditor>`; `<StickySaveBar>` |
+| **Auth** | `<AuthCard>`, `<Field>`, `<Button>`, `<GoogleButton>` |
+| **Profile** | `<ProfileHeader>`, `<Tabs>`, `<RecipeCard>`, `<BrewLogList>` |
+
+**shadcn/ui primitives underneath:** `button`, `card`, `input`, `label`, `badge`, `tabs`, `dialog`, `sheet`, `dropdown-menu`, `tooltip`, `avatar`, `skeleton`, `separator`, `sonner` (toast). Style each once to §4, then reuse.
+
+## 9. Consistency contract (Definition of Done)
+
+Build rules that keep every page and section identical in feel. Each screen/PR must satisfy all of these before it's "done":
+
+1. **Tokens, not literals.** No hex/rgb, no arbitrary Tailwind values (`p-[13px]`, `text-[#333]`). Use token utilities (`bg-surface`, `text-secondary`, `border-border`, `rounded-md`, `font-display`). Add a lint rule to flag arbitrary values where practical.
+2. **Shared components, not bespoke markup.** Compose from §8; never re-style a button/card/input/field per page.
+3. **One shell.** Every page renders inside `<Container>` with the header/nav; section spacing uses the §3.5 rhythm (64–96 mobile / 96–128 desktop).
+4. **Accent discipline.** `--brand` only at the §3.3-approved spots; never on primary buttons, fills, or backgrounds.
+5. **Both themes.** Verified in light *and* dark before merge.
+6. **Fonts stay in lanes.** Headings `font-display`, body `font-sans` (300), numbers `font-mono` — no mixing.
+7. **Accessibility & responsive.** Meets §6 — focus-visible, ≥44px tap targets (≥56 timer), alt text, status not by color alone, no horizontal scroll, and verified at the §6 test viewports (360 → 1440).
+8. **New pattern? Promote it.** If a needed component isn't in §8, add it here and build it as a shared component — don't inline a one-off.
+
+Reference the live `design-preview.html` as the visual check; the token files below are the enforceable source.
+
+## 10. Implementation notes
+
+- **Fonts:** `next/font/google` for Space Grotesk / Inter / JetBrains Mono, each configured with `variable:` (`--font-space-grotesk`, `--font-inter`, `--font-jetbrains-mono`); add those classes to `<html>`. `globals.css` maps them to `--font-display` / `--font-sans` / `--font-mono`. Load **Inter 300/400/500/600** (300 = default body weight), Space Grotesk 400–700, JetBrains Mono 400/500.
 - **Theming:** CSS variables on `:root` + `[data-theme="dark"]`; Tailwind `darkMode: ['class', '[data-theme="dark"]']`. Default light; a small script applies stored/OS preference pre-hydration to avoid flash.
 - **Tailwind config:** extend `colors` (map every token), `fontFamily`, `borderRadius`, `spacing`, `boxShadow` from the tokens above so utilities read from one source.
 - **Icons:** `@phosphor-icons/react`, regular default; wrap in a small `<Icon>` helper for consistent sizing/weight.
-- **Tokens file:** ship `app/globals.css` (or `styles/tokens.css`) as the single source; document that components must reference tokens, never hex literals.
+- **Tokens file (shipped in this repo):** `src/app/globals.css` (Tailwind v4, CSS-first; the app uses the `src/` layout) is the committed single source of truth — raw tokens, both themes via `[data-theme]`, the shadcn/ui variable mapping, and `@theme` utility exposure. `tailwind.config.ts` is included as a Tailwind v3 fallback pointing back at the same CSS variables. Components reference tokens/utilities, never hex literals.
 
-## 8. Reference links (Mobbin)
+## 11. Reference links (Mobbin)
 
 Base + component anchors:
 
