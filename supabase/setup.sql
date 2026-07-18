@@ -106,3 +106,21 @@ create policy "recipe_versions_write_own" on public.recipe_versions
 drop policy if exists "brew_logs_own" on public.brew_logs;
 create policy "brew_logs_own" on public.brew_logs
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- 3) Library tables (coffees / grinders / brewers) — owner-only --------------
+
+alter table public.coffees enable row level security;
+alter table public.grinders enable row level security;
+alter table public.brewers enable row level security;
+
+drop policy if exists "coffees_own" on public.coffees;
+create policy "coffees_own" on public.coffees
+  for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+drop policy if exists "grinders_own" on public.grinders;
+create policy "grinders_own" on public.grinders
+  for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+drop policy if exists "brewers_own" on public.brewers;
+create policy "brewers_own" on public.brewers
+  for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());

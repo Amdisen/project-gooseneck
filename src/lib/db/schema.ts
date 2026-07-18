@@ -35,10 +35,70 @@ export const profiles = pgTable("profiles", {
   username: text("username").unique(),
   displayName: text("display_name"),
   avatarUrl: text("avatar_url"),
+  // App-enforced pointers (no hard FK) to the user's usual gear.
+  defaultGrinderId: uuid("default_grinder_id"),
+  defaultBrewerId: uuid("default_brewer_id"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+/** A coffee the user buys — reused across recipes (bean-specific model). */
+export const coffees = pgTable(
+  "coffees",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    roaster: text("roaster"),
+    origin: text("origin"),
+    roastLevel: roastLevelEnum("roast_level"),
+    process: text("process"),
+    photoUrl: text("photo_url"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("coffees_owner_idx").on(t.ownerId)],
+);
+
+/** A grinder in the user's gear. Grind *setting* stays per-recipe. */
+export const grinders = pgTable(
+  "grinders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("grinders_owner_idx").on(t.ownerId)],
+);
+
+/** A brewer in the user's gear; carries the brew method. */
+export const brewers = pgTable(
+  "brewers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    method: brewMethodEnum("method").notNull().default("v60"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("brewers_owner_idx").on(t.ownerId)],
+);
 
 /**
  * Recipe container. Holds identity and pointers; the actual brew parameters live
@@ -57,6 +117,10 @@ export const recipes = pgTable(
     visibility: visibilityEnum("visibility").notNull().default("private"),
     currentVersionId: uuid("current_version_id"),
     forkedFromRecipeId: uuid("forked_from_recipe_id"),
+    // App-enforced references to the user's library (recipe still snapshots values).
+    coffeeId: uuid("coffee_id"),
+    grinderId: uuid("grinder_id"),
+    brewerId: uuid("brewer_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -165,3 +229,6 @@ export type Profile = typeof profiles.$inferSelect;
 export type Recipe = typeof recipes.$inferSelect;
 export type RecipeVersion = typeof recipeVersions.$inferSelect;
 export type BrewLog = typeof brewLogs.$inferSelect;
+export type Coffee = typeof coffees.$inferSelect;
+export type Grinder = typeof grinders.$inferSelect;
+export type Brewer = typeof brewers.$inferSelect;
