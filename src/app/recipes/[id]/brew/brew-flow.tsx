@@ -115,7 +115,7 @@ export function BrewFlow({ initial }: { initial: BrewInitial }) {
           ← Back to recipe
         </Link>
         <h1 className="mt-2 text-2xl font-semibold">Brew {initial.title}</h1>
-        <p className="text-xs text-gray-400">Step {step + 1} of 4</p>
+        <p className="text-xs text-gray-400">Step {step + 1} of 3</p>
       </div>
 
       {error && (
@@ -286,26 +286,6 @@ export function BrewFlow({ initial }: { initial: BrewInitial }) {
             />
           </label>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStep(1)}
-              className="rounded border border-gray-300 px-4 py-2 font-medium"
-            >
-              Back
-            </button>
-            <button
-              onClick={() => setStep(3)}
-              className="rounded bg-gray-900 px-4 py-2 font-medium text-white"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 4 — next */}
-      {step === 3 && (
-        <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm">
             <span>Anything to try next time? (optional)</span>
             <textarea
@@ -316,9 +296,10 @@ export function BrewFlow({ initial }: { initial: BrewInitial }) {
               placeholder="Grind a touch finer; extend bloom to 0:50…"
             />
           </label>
+
           <div className="flex gap-2">
             <button
-              onClick={() => setStep(2)}
+              onClick={() => setStep(1)}
               className="rounded border border-gray-300 px-4 py-2 font-medium"
             >
               Back
