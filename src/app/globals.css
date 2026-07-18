@@ -1,26 +1,203 @@
+/* =============================================================================
+   Project Gooseneck — globals.css
+   SINGLE SOURCE OF TRUTH for design tokens. See design.md §3.
+
+   Tailwind v4 (CSS-first). If the app is scaffolded with shadcn/ui, this file
+   REPLACES the generated globals.css. All components must read from these
+   tokens/utilities — never hardcode hex/rgb or use arbitrary values.
+   (Tailwind v3 users: mirror these in tailwind.config.ts — one is provided.)
+============================================================================= */
+
 @import "tailwindcss";
 
+/* Dark mode is driven by [data-theme="dark"] on <html> (manual toggle + OS pref) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* -----------------------------------------------------------------------------
+   RAW TOKENS — light (default)
+----------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* neutral scale */
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --surface-2: #F4F4F5;
+  --surface-3: #E9E9EB;
+  --border: #E4E4E7;
+  --border-strong: #D4D4D8;
+  --text: #111111;
+  --text-secondary: #52525B;
+  --text-muted: #A1A1AA;
+  --fg-inverse: #FAFAFA;
+
+  /* the ONE brand accent (design.md §3.3) — roast-orange.
+     NOTE: named --brand, NOT --accent, because shadcn/ui uses --accent for a
+     neutral hover surface. Do not conflate them. */
+  --brand: #DD5B2E;
+  --brand-contrast: #FFFFFF;
+
+  /* functional status (validation/status only) */
+  --danger: #C0392B;
+  --success: #2E7D5B;
+
+  /* radii (design.md §3.6) — rectangular, tight */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+  --r-pill: 9999px;
+
+  /* elevation */
+  --e1: 0 1px 2px rgba(0, 0, 0, .04);
+  --e2: 0 8px 30px rgba(0, 0, 0, .08);
+
+  /* fonts (next/font injects --font-space-grotesk / --font-inter / --font-jetbrains-mono) */
+  --font-display: var(--font-space-grotesk), "Space Grotesk", system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+
+  /* ---- shadcn/ui semantic aliases (so its components inherit our theme) ---- */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--text);
+  --primary-foreground: var(--fg-inverse);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--surface-2);          /* shadcn's neutral hover surface — NOT the brand */
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --destructive-foreground: #FFFFFF;
+  --input: var(--border-strong);
+  --ring: var(--text);
+  --radius: var(--r-md);
 }
 
+/* -----------------------------------------------------------------------------
+   RAW TOKENS — dark
+----------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --surface-2: #1C1C1F;
+  --surface-3: #26262A;
+  --border: #262626;
+  --border-strong: #3A3A3D;
+  --text: #FAFAFA;
+  --text-secondary: #A1A1A1;
+  --text-muted: #71717A;
+  --fg-inverse: #0A0A0A;
+
+  --brand: #F26A3C;
+  --brand-contrast: #111111;
+
+  --danger: #F0625A;
+  --success: #4CB98A;
+
+  --e1: 0 1px 2px rgba(0, 0, 0, .4);
+  --e2: 0 12px 40px rgba(0, 0, 0, .6);
+
+  --destructive-foreground: #111111;
+}
+
+/* -----------------------------------------------------------------------------
+   THEME MAPPING — expose tokens as Tailwind utilities
+   (bg-surface, text-secondary, border-border, rounded-md, font-display, etc.)
+----------------------------------------------------------------------------- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* semantic colors */
+  --color-bg: var(--bg);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-fg-inverse: var(--fg-inverse);
+  --color-brand: var(--brand);
+  --color-brand-contrast: var(--brand-contrast);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+
+  /* shadcn aliases */
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--text);
+  --color-primary-foreground: var(--fg-inverse);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--text-secondary);
+  --color-accent: var(--surface-2);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--border-strong);
+  --color-ring: var(--text);
+
+  /* radii */
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  /* fonts */
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* elevation */
+  --shadow-e1: var(--e1);
+  --shadow-e2: var(--e2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* -----------------------------------------------------------------------------
+   BASE
+----------------------------------------------------------------------------- */
+@layer base {
+  * {
+    border-color: var(--border);
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-weight: 300;              /* Inter Light — default body (design.md §3.4) */
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);   /* Space Grotesk */
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  /* numeric data — apply .num (or Tailwind font-mono) to doses/ratios/water/time */
+  .num {
+    font-family: var(--font-mono);
+    font-weight: 500;
+  }
+  :focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+    }
+  }
 }
