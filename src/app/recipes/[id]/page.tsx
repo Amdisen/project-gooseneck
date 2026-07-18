@@ -112,6 +112,17 @@ export default async function RecipePage({
             total
           </p>
         )}
+        {recipe.forkedFromRecipeId && (
+          <p className="mt-1 text-xs text-gray-400">
+            Forked from{" "}
+            <Link
+              href={`/r/${recipe.forkedFromRecipeId}`}
+              className="underline"
+            >
+              the original
+            </Link>
+          </p>
+        )}
       </div>
 
       <section className="flex items-center justify-between rounded border border-gray-200 p-3 text-sm">

@@ -10,6 +10,8 @@ import {
   brewers,
 } from "@/lib/db/schema";
 import { secondsToClock } from "@/lib/validation/recipe";
+import { getUser } from "@/lib/auth";
+import { forkRecipe } from "@/app/recipes/actions";
 
 export default async function PublicRecipePage({
   params,
@@ -17,6 +19,7 @@ export default async function PublicRecipePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const user = await getUser();
 
   const [recipe] = await db
     .select()
@@ -94,6 +97,26 @@ export default async function PublicRecipePage({
           )}
         </p>
       </div>
+
+      <section className="flex items-center gap-3">
+        {user ? (
+          <form action={forkRecipe.bind(null, id)}>
+            <button className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
+              Fork this recipe
+            </button>
+          </form>
+        ) : (
+          <Link
+            href="/login"
+            className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+          >
+            Sign in to fork
+          </Link>
+        )}
+        <span className="text-xs text-gray-500">
+          Saves a private copy to your recipes to tweak.
+        </span>
+      </section>
 
       {draft && (
         <>

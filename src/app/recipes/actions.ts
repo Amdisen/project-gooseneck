@@ -336,6 +336,72 @@ export async function deleteRecipe(recipeId: string) {
   redirect("/recipes");
 }
 
+/** Copy a public (or own) recipe into a new private recipe for the current user. */
+export async function forkRecipe(recipeId: string) {
+  const user = await requireUser();
+
+  const [source] = await db
+    .select()
+    .from(recipes)
+    .where(eq(recipes.id, recipeId))
+    .limit(1);
+  if (!source) redirect("/feed");
+  if (source.visibility !== "public" && source.ownerId !== user.id) {
+    redirect("/feed");
+  }
+
+  const [srcDraft] = await db
+    .select()
+    .from(recipeVersions)
+    .where(
+      and(
+        eq(recipeVersions.recipeId, recipeId),
+        eq(recipeVersions.isDraft, true),
+      ),
+    )
+    .limit(1);
+
+  const [newRecipe] = await db
+    .insert(recipes)
+    .values({
+      ownerId: user.id,
+      title: `${source.title} (fork)`,
+      method: source.method,
+      visibility: "private",
+      forkedFromRecipeId: source.id,
+    })
+    .returning({ id: recipes.id });
+
+  if (srcDraft) {
+    await db.insert(recipeVersions).values({
+      recipeId: newRecipe.id,
+      isDraft: true,
+      beanName: srcDraft.beanName,
+      roaster: srcDraft.roaster,
+      origin: srcDraft.origin,
+      roastLevel: srcDraft.roastLevel,
+      process: srcDraft.process,
+      beanPhotoUrl: srcDraft.beanPhotoUrl,
+      grinderName: srcDraft.grinderName,
+      grindSetting: srcDraft.grindSetting,
+      grindPhotoUrl: srcDraft.grindPhotoUrl,
+      doseGrams: srcDraft.doseGrams,
+      waterGrams: srcDraft.waterGrams,
+      waterTempC: srcDraft.waterTempC,
+      filterType: srcDraft.filterType,
+      techniqueNotes: srcDraft.techniqueNotes,
+      bloomWaterGrams: srcDraft.bloomWaterGrams,
+      bloomSeconds: srcDraft.bloomSeconds,
+      pours: srcDraft.pours,
+      ratio: srcDraft.ratio,
+      totalBrewSeconds: srcDraft.totalBrewSeconds,
+    });
+  }
+
+  revalidatePath("/recipes");
+  redirect(`/recipes/${newRecipe.id}`);
+}
+
 /** Publish (make public) or unpublish (make private) a recipe. */
 export async function setVisibility(recipeId: string, makePublic: boolean) {
   const user = await requireUser();
