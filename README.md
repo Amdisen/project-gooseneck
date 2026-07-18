@@ -1,4 +1,4 @@
-# Gooseneck ☕
+# Project Gooseneck ☕
 
 A web app for recording and sharing **V60 pour-over coffee recipes** — capture the
 bean, grinder settings, dose, water, bloom and every pour, then re-brew it exactly,
