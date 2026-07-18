@@ -24,7 +24,7 @@ function safeRedirect(formData: FormData) {
   if (typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//")) {
     return raw;
   }
-  return "/account";
+  return "/recipes";
 }
 
 export async function login(formData: FormData) {
