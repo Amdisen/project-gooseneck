@@ -1,11 +1,66 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { recipes, recipeVersions, brewLogs } from "@/lib/db/schema";
+import {
+  recipes,
+  recipeVersions,
+  brewLogs,
+  type RecipeVersion,
+} from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { secondsToClock } from "@/lib/validation/recipe";
 import { logBrew, deleteRecipe } from "../actions";
+
+/** Human-readable list of what changed between two param snapshots. */
+function diffSnapshots(
+  prev: RecipeVersion,
+  curr: RecipeVersion,
+): string[] {
+  const out: string[] = [];
+  const cmp = (
+    label: string,
+    a: unknown,
+    b: unknown,
+    fmt: (x: never) => string = (x) => String(x),
+  ) => {
+    const av = a ?? null;
+    const bv = b ?? null;
+    if (av !== bv) {
+      out.push(
+        `${label} ${av === null ? "—" : fmt(av as never)} → ${
+          bv === null ? "—" : fmt(bv as never)
+        }`,
+      );
+    }
+  };
+  cmp("dose", prev.doseGrams, curr.doseGrams, (x: number) => `${x}g`);
+  cmp("grind", prev.grindSetting, curr.grindSetting);
+  cmp("water", prev.waterGrams, curr.waterGrams, (x: number) => `${x}g`);
+  cmp("temp", prev.waterTempC, curr.waterTempC, (x: number) => `${x}°C`);
+  cmp(
+    "bloom water",
+    prev.bloomWaterGrams,
+    curr.bloomWaterGrams,
+    (x: number) => `${x}g`,
+  );
+  cmp(
+    "bloom time",
+    prev.bloomSeconds,
+    curr.bloomSeconds,
+    (x: number) => secondsToClock(x),
+  );
+  cmp("ratio", prev.ratio, curr.ratio, (x: number) => `1:${x}`);
+  cmp("bean", prev.beanName, curr.beanName);
+  cmp("grinder", prev.grinderName, curr.grinderName);
+  cmp("filter", prev.filterType, curr.filterType);
+  if (JSON.stringify(prev.pours) !== JSON.stringify(curr.pours)) {
+    out.push(
+      `pour schedule (${prev.pours?.length ?? 0} → ${curr.pours?.length ?? 0} pours)`,
+    );
+  }
+  return out;
+}
 
 export default async function RecipePage({
   params,
@@ -37,10 +92,27 @@ export default async function RecipePage({
     .where(eq(brewLogs.recipeId, id))
     .orderBy(desc(brewLogs.brewedAt));
 
-  // Most recent "change next time" note, surfaced before the next brew.
+  // Load the param snapshots tied to those brews.
+  const versionIds = logs
+    .map((l) => l.recipeVersionId)
+    .filter((v): v is string => v != null);
+  const snaps = versionIds.length
+    ? await db
+        .select()
+        .from(recipeVersions)
+        .where(inArray(recipeVersions.id, versionIds))
+    : [];
+  const snapById = new Map(snaps.map((s) => [s.id, s]));
+
   const nextTip = logs.find((l) => l.changeNext)?.changeNext;
 
-  // Reconstruct the cumulative timeline for display.
+  // How does the current recipe differ from the most recent brew?
+  const lastBrewSnap = logs[0]?.recipeVersionId
+    ? snapById.get(logs[0].recipeVersionId)
+    : undefined;
+  const sinceLastBrew =
+    draft && lastBrewSnap ? diffSnapshots(lastBrewSnap, draft) : [];
+
   const bloomWater = draft?.bloomWaterGrams ?? 0;
   let running = bloomWater;
   const steps = (draft?.pours ?? []).map((p) => {
@@ -80,6 +152,13 @@ export default async function RecipePage({
           <span className="font-medium">Before you brew — change next time:</span>{" "}
           {nextTip}
         </p>
+      )}
+
+      {sinceLastBrew.length > 0 && (
+        <div className="rounded border border-gray-300 bg-gray-50 p-3 text-sm">
+          <span className="font-medium">Changed since your last brew:</span>{" "}
+          {sinceLastBrew.join(" · ")}
+        </div>
       )}
 
       {draft && (
@@ -226,35 +305,58 @@ export default async function RecipePage({
 
       {logs.length > 0 && (
         <section>
-          <h2 className="mb-2 text-sm font-semibold">Brew log</h2>
+          <h2 className="mb-2 text-sm font-semibold">
+            Brew log &amp; history
+          </h2>
           <ul className="flex flex-col gap-3">
-            {logs.map((l) => (
-              <li
-                key={l.id}
-                className="rounded border border-gray-200 p-3 text-sm"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">
-                    {l.brewedAt.toISOString().slice(0, 10)}
-                  </span>
-                  {l.rating != null && (
-                    <span className="text-amber-500">
-                      {"★".repeat(l.rating)}
-                      <span className="text-gray-300">
-                        {"★".repeat(5 - l.rating)}
-                      </span>
+            {logs.map((l, i) => {
+              const thisSnap = l.recipeVersionId
+                ? snapById.get(l.recipeVersionId)
+                : undefined;
+              const prevLog = logs[i + 1];
+              const prevSnap = prevLog?.recipeVersionId
+                ? snapById.get(prevLog.recipeVersionId)
+                : undefined;
+              const changes =
+                thisSnap && prevSnap ? diffSnapshots(prevSnap, thisSnap) : [];
+              return (
+                <li
+                  key={l.id}
+                  className="rounded border border-gray-200 p-3 text-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">
+                      {l.brewedAt.toISOString().slice(0, 10)}
+                      {thisSnap && (
+                        <span className="ml-2 text-gray-400">
+                          {thisSnap.doseGrams}g · 1:{thisSnap.ratio ?? "—"}
+                        </span>
+                      )}
                     </span>
+                    {l.rating != null && (
+                      <span className="text-amber-500">
+                        {"★".repeat(l.rating)}
+                        <span className="text-gray-300">
+                          {"★".repeat(5 - l.rating)}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                  {changes.length > 0 && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Changed from previous brew: {changes.join(" · ")}
+                    </p>
                   )}
-                </div>
-                {l.notes && <p className="mt-1">{l.notes}</p>}
-                {l.changeNext && (
-                  <p className="mt-1 text-gray-600">
-                    <span className="font-medium">Change next time:</span>{" "}
-                    {l.changeNext}
-                  </p>
-                )}
-              </li>
-            ))}
+                  {l.notes && <p className="mt-1">{l.notes}</p>}
+                  {l.changeNext && (
+                    <p className="mt-1 text-gray-600">
+                      <span className="font-medium">Change next time:</span>{" "}
+                      {l.changeNext}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
