@@ -137,6 +137,8 @@ export const brewLogs = pgTable(
     ),
     rating: integer("rating"),
     notes: text("notes"),
+    /** "What I'd change next time" — surfaced on the recipe before the next brew. */
+    changeNext: text("change_next"),
     brewedAt: timestamp("brewed_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

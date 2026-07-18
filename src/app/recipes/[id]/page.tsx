@@ -2,10 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { recipes, recipeVersions } from "@/lib/db/schema";
+import { recipes, recipeVersions, brewLogs } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { secondsToClock } from "@/lib/validation/recipe";
-import { saveVersion, deleteRecipe } from "../actions";
+import { logBrew, deleteRecipe } from "../actions";
 
 export default async function RecipePage({
   params,
@@ -21,7 +21,6 @@ export default async function RecipePage({
     .where(eq(recipes.id, id))
     .limit(1);
   if (!recipe) notFound();
-  // Recipes are private until Phase 3 opens up public viewing.
   if (recipe.ownerId !== user.id) redirect("/recipes");
 
   const [draft] = await db
@@ -32,13 +31,14 @@ export default async function RecipePage({
     )
     .limit(1);
 
-  const saved = await db
+  const logs = await db
     .select()
-    .from(recipeVersions)
-    .where(
-      and(eq(recipeVersions.recipeId, id), eq(recipeVersions.isDraft, false)),
-    )
-    .orderBy(desc(recipeVersions.versionNumber));
+    .from(brewLogs)
+    .where(eq(brewLogs.recipeId, id))
+    .orderBy(desc(brewLogs.brewedAt));
+
+  // Most recent "change next time" note, surfaced before the next brew.
+  const nextTip = logs.find((l) => l.changeNext)?.changeNext;
 
   // Reconstruct the cumulative timeline for display.
   const bloomWater = draft?.bloomWaterGrams ?? 0;
@@ -74,6 +74,13 @@ export default async function RecipePage({
           </p>
         )}
       </div>
+
+      {nextTip && (
+        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <span className="font-medium">Before you brew — change next time:</span>{" "}
+          {nextTip}
+        </p>
+      )}
 
       {draft && (
         <>
@@ -175,35 +182,90 @@ export default async function RecipePage({
         </>
       )}
 
-      <section className="flex flex-wrap gap-2 border-t border-gray-200 pt-4">
-        <form action={saveVersion.bind(null, id)}>
-          <button className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
-            Save version
+      <section className="border-t border-gray-200 pt-4">
+        <h2 className="mb-2 text-sm font-semibold">Log a brew</h2>
+        <form action={logBrew.bind(null, id)} className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1 text-sm">
+            <span>Rating</span>
+            <select
+              name="rating"
+              className="w-32 rounded border border-gray-300 px-3 py-2"
+              defaultValue=""
+            >
+              <option value="">—</option>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {"★".repeat(n)} ({n})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span>Tasting notes</span>
+            <textarea
+              name="notes"
+              rows={2}
+              className="rounded border border-gray-300 px-3 py-2"
+              placeholder="Bright, a little sour, thin body…"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span>Change next time</span>
+            <textarea
+              name="changeNext"
+              rows={2}
+              className="rounded border border-gray-300 px-3 py-2"
+              placeholder="Grind a touch finer; extend bloom to 0:50…"
+            />
+          </label>
+          <button className="self-start rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
+            Log brew
           </button>
         </form>
+      </section>
+
+      {logs.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold">Brew log</h2>
+          <ul className="flex flex-col gap-3">
+            {logs.map((l) => (
+              <li
+                key={l.id}
+                className="rounded border border-gray-200 p-3 text-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">
+                    {l.brewedAt.toISOString().slice(0, 10)}
+                  </span>
+                  {l.rating != null && (
+                    <span className="text-amber-500">
+                      {"★".repeat(l.rating)}
+                      <span className="text-gray-300">
+                        {"★".repeat(5 - l.rating)}
+                      </span>
+                    </span>
+                  )}
+                </div>
+                {l.notes && <p className="mt-1">{l.notes}</p>}
+                {l.changeNext && (
+                  <p className="mt-1 text-gray-600">
+                    <span className="font-medium">Change next time:</span>{" "}
+                    {l.changeNext}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className="border-t border-gray-200 pt-4">
         <form action={deleteRecipe.bind(null, id)}>
           <button className="rounded border border-red-300 px-4 py-2 text-sm font-medium text-red-700">
             Delete recipe
           </button>
         </form>
       </section>
-
-      {saved.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-sm font-semibold">Saved versions</h2>
-          <ul className="flex flex-col divide-y divide-gray-200 rounded border border-gray-200 text-sm">
-            {saved.map((v) => (
-              <li key={v.id} className="flex items-center justify-between p-2.5">
-                <span>Version {v.versionNumber}</span>
-                <span className="text-gray-500">
-                  {v.doseGrams}g · 1:{v.ratio ?? "—"} ·{" "}
-                  {v.totalBrewSeconds ? secondsToClock(v.totalBrewSeconds) : "—"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </main>
   );
 }

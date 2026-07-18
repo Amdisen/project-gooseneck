@@ -8,6 +8,13 @@
       "when": 1784377870637,
       "tag": "0000_handy_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784385369218,
+      "tag": "0001_cuddly_mole_man",
+      "breakpoints": true
     }
   ]
 }

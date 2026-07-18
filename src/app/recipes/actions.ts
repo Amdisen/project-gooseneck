@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { recipes, recipeVersions } from "@/lib/db/schema";
+import { recipes, recipeVersions, brewLogs } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import {
   recipeFormSchema,
@@ -113,11 +113,12 @@ export async function updateDraft(recipeId: string, raw: unknown) {
   redirect(`/recipes/${recipeId}`);
 }
 
-/** Snapshot the current draft into an immutable, numbered version. */
-export async function saveVersion(recipeId: string) {
-  const user = await requireUser();
-  await requireOwnedRecipe(recipeId, user.id);
-
+/**
+ * Snapshot the current draft into an immutable, numbered version and return its
+ * id. Used automatically when a brew is logged, so the log records the exact
+ * params brewed. Returns null if there's no draft.
+ */
+async function snapshotDraft(recipeId: string): Promise<string | null> {
   const [draft] = await db
     .select()
     .from(recipeVersions)
@@ -128,7 +129,7 @@ export async function saveVersion(recipeId: string) {
       ),
     )
     .limit(1);
-  if (!draft) redirect(`/recipes/${recipeId}`);
+  if (!draft) return null;
 
   const [latest] = await db
     .select({ n: recipeVersions.versionNumber })
@@ -174,6 +175,34 @@ export async function saveVersion(recipeId: string) {
     .update(recipes)
     .set({ currentVersionId: saved.id, updatedAt: new Date() })
     .where(eq(recipes.id, recipeId));
+
+  return saved.id;
+}
+
+/** Log a brew: rating + tasting notes + "change next time", with an auto-snapshot. */
+export async function logBrew(recipeId: string, formData: FormData) {
+  const user = await requireUser();
+  await requireOwnedRecipe(recipeId, user.id);
+
+  const ratingRaw = formData.get("rating");
+  const rating =
+    ratingRaw && String(ratingRaw) !== ""
+      ? Math.min(5, Math.max(1, parseInt(String(ratingRaw), 10)))
+      : null;
+  const notes = (formData.get("notes")?.toString() ?? "").trim() || null;
+  const changeNext =
+    (formData.get("changeNext")?.toString() ?? "").trim() || null;
+
+  const versionId = await snapshotDraft(recipeId);
+
+  await db.insert(brewLogs).values({
+    userId: user.id,
+    recipeId,
+    recipeVersionId: versionId,
+    rating,
+    notes,
+    changeNext,
+  });
 
   revalidatePath(`/recipes/${recipeId}`);
   redirect(`/recipes/${recipeId}`);
