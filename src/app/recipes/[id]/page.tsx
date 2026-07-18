@@ -304,61 +304,69 @@ export default async function RecipePage({
       </section>
 
       {logs.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-sm font-semibold">
-            Brew log &amp; history
-          </h2>
-          <ul className="flex flex-col gap-3">
-            {logs.map((l, i) => {
-              const thisSnap = l.recipeVersionId
-                ? snapById.get(l.recipeVersionId)
-                : undefined;
-              const prevLog = logs[i + 1];
-              const prevSnap = prevLog?.recipeVersionId
-                ? snapById.get(prevLog.recipeVersionId)
-                : undefined;
-              const changes =
-                thisSnap && prevSnap ? diffSnapshots(prevSnap, thisSnap) : [];
-              return (
-                <li
-                  key={l.id}
-                  className="rounded border border-gray-200 p-3 text-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500">
-                      {l.brewedAt.toISOString().slice(0, 10)}
-                      {thisSnap && (
-                        <span className="ml-2 text-gray-400">
-                          {thisSnap.doseGrams}g · 1:{thisSnap.ratio ?? "—"}
-                        </span>
-                      )}
-                    </span>
-                    {l.rating != null && (
-                      <span className="text-amber-500">
-                        {"★".repeat(l.rating)}
-                        <span className="text-gray-300">
-                          {"★".repeat(5 - l.rating)}
-                        </span>
-                      </span>
-                    )}
-                  </div>
-                  {changes.length > 0 && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Changed from previous brew: {changes.join(" · ")}
-                    </p>
-                  )}
-                  {l.notes && <p className="mt-1">{l.notes}</p>}
-                  {l.changeNext && (
-                    <p className="mt-1 text-gray-600">
-                      <span className="font-medium">Change next time:</span>{" "}
-                      {l.changeNext}
-                    </p>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+        <details className="rounded border border-gray-200 text-sm">
+          <summary className="cursor-pointer select-none px-3 py-2 font-medium text-gray-700">
+            Brew history ({logs.length})
+          </summary>
+          <div className="overflow-x-auto border-t border-gray-200">
+            <table className="w-full text-left text-xs">
+              <thead className="text-gray-500">
+                <tr className="border-b border-gray-200">
+                  <th className="p-2 font-medium">Date</th>
+                  <th className="p-2 font-medium">Rating</th>
+                  <th className="p-2 font-medium">Recipe</th>
+                  <th className="p-2 font-medium">Changed</th>
+                  <th className="p-2 font-medium">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((l, i) => {
+                  const thisSnap = l.recipeVersionId
+                    ? snapById.get(l.recipeVersionId)
+                    : undefined;
+                  const prevLog = logs[i + 1];
+                  const prevSnap = prevLog?.recipeVersionId
+                    ? snapById.get(prevLog.recipeVersionId)
+                    : undefined;
+                  const changes =
+                    thisSnap && prevSnap
+                      ? diffSnapshots(prevSnap, thisSnap)
+                      : [];
+                  return (
+                    <tr
+                      key={l.id}
+                      className="border-b border-gray-100 align-top last:border-0"
+                    >
+                      <td className="whitespace-nowrap p-2 text-gray-500">
+                        {l.brewedAt.toISOString().slice(0, 10)}
+                      </td>
+                      <td className="whitespace-nowrap p-2 text-amber-500">
+                        {l.rating != null ? "★".repeat(l.rating) : "—"}
+                      </td>
+                      <td className="whitespace-nowrap p-2 text-gray-600">
+                        {thisSnap
+                          ? `${thisSnap.doseGrams}g · 1:${thisSnap.ratio ?? "—"}`
+                          : "—"}
+                      </td>
+                      <td className="p-2 text-gray-500">
+                        {changes.length ? changes.join(" · ") : "—"}
+                      </td>
+                      <td className="p-2">
+                        {l.notes && <span>{l.notes}</span>}
+                        {l.changeNext && (
+                          <span className="block text-gray-500">
+                            → {l.changeNext}
+                          </span>
+                        )}
+                        {!l.notes && !l.changeNext && "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </details>
       )}
 
       <section className="border-t border-gray-200 pt-4">
