@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# large source images — only the optimized .webp versions are committed
+# (regenerate with: node scripts/optimize-images.mjs)
+/public/recipe-card-default.png
+/public/coffee-bags/*.png
+/public/recipe-cards/*.png
