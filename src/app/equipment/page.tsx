@@ -87,8 +87,8 @@ export default async function LibraryPage({
   return (
     <Container width="app" className="flex flex-col gap-8 py-10">
       <PageHeader
-        eyebrow="Library"
-        title="Your gear & coffees"
+        eyebrow="Equipment"
+        title="Your coffees & gear"
         subtitle="Saved items pre-fill new recipes. Set a default grinder and brewer to auto-select them."
       />
 
@@ -97,7 +97,7 @@ export default async function LibraryPage({
       <Segmented
         items={TABS.map((t) => ({
           label: t.label,
-          href: `/library?tab=${t.key}`,
+          href: `/equipment?tab=${t.key}`,
           active: t.key === tab,
         }))}
       />

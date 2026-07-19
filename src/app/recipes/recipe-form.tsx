@@ -17,7 +17,7 @@ import {
   createCoffeeInline,
   createGrinderInline,
   createBrewerInline,
-} from "@/app/library/actions";
+} from "@/app/equipment/actions";
 import type { Coffee, Grinder, Brewer } from "@/lib/db/schema";
 import { PhotoUpload } from "./photo-upload";
 import { Field } from "@/components/ui/field";
@@ -326,7 +326,7 @@ export function RecipeForm({
 
       <fieldset className="grid gap-3 sm:grid-cols-2">
         <legend className="mb-1 text-sm font-semibold text-foreground">Bean</legend>
-        <Field label="Coffee (from your library)" className="sm:col-span-2">
+        <Field label="Coffee (from your equipment)" className="sm:col-span-2">
           <Select
             value={adding.coffee ? "__new__" : form.coffeeId}
             onChange={(e) => pickCoffee(e.target.value)}
@@ -357,7 +357,7 @@ export function RecipeForm({
             </div>
             <div className="flex gap-2">
               <Button type="button" size="sm" onClick={addCoffee}>
-                Add to library
+                Add to equipment
               </Button>
               <Button type="button" size="sm" variant="secondary" onClick={() => setAdding((a) => ({ ...a, coffee: false }))}>
                 Cancel
@@ -409,7 +409,7 @@ export function RecipeForm({
 
       <fieldset className="grid gap-3 sm:grid-cols-2">
         <legend className="mb-1 text-sm font-semibold text-foreground">Grinder</legend>
-        <Field label="Grinder (from your library)" className="sm:col-span-2">
+        <Field label="Grinder (from your equipment)" className="sm:col-span-2">
           <Select
             value={adding.grinder ? "__new__" : form.grinderId}
             onChange={(e) => pickGrinder(e.target.value)}

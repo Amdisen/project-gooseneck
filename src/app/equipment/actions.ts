@@ -29,7 +29,7 @@ function s(fd: FormData, k: string) {
 }
 
 function fail(message: string): never {
-  redirect(`/library?error=${encodeURIComponent(message)}`);
+  redirect(`/equipment?error=${encodeURIComponent(message)}`);
 }
 
 // --- Coffees ---------------------------------------------------------------
@@ -55,8 +55,8 @@ export async function createCoffee(formData: FormData) {
     process: d.process || null,
     photoUrl: d.photoUrl || null,
   });
-  revalidatePath("/library");
-  redirect("/library");
+  revalidatePath("/equipment");
+  redirect("/equipment");
 }
 
 export async function deleteCoffee(id: string) {
@@ -64,8 +64,8 @@ export async function deleteCoffee(id: string) {
   await db
     .delete(coffees)
     .where(and(eq(coffees.id, id), eq(coffees.ownerId, user.id)));
-  revalidatePath("/library");
-  redirect("/library");
+  revalidatePath("/equipment");
+  redirect("/equipment");
 }
 
 // --- Grinders --------------------------------------------------------------
@@ -75,8 +75,8 @@ export async function createGrinder(formData: FormData) {
   const parsed = grinderInputSchema.safeParse({ name: s(formData, "name") });
   if (!parsed.success) fail(parsed.error.issues[0]?.message ?? "Invalid grinder.");
   await db.insert(grinders).values({ ownerId: user.id, name: parsed.data.name });
-  revalidatePath("/library");
-  redirect("/library");
+  revalidatePath("/equipment");
+  redirect("/equipment");
 }
 
 export async function deleteGrinder(id: string) {
@@ -84,8 +84,8 @@ export async function deleteGrinder(id: string) {
   await db
     .delete(grinders)
     .where(and(eq(grinders.id, id), eq(grinders.ownerId, user.id)));
-  revalidatePath("/library");
-  redirect("/library");
+  revalidatePath("/equipment");
+  redirect("/equipment");
 }
 
 // --- Brewers ---------------------------------------------------------------
@@ -100,8 +100,8 @@ export async function createBrewer(formData: FormData) {
   await db
     .insert(brewers)
     .values({ ownerId: user.id, name: parsed.data.name, method: parsed.data.method });
-  revalidatePath("/library");
-  redirect("/library");
+  revalidatePath("/equipment");
+  redirect("/equipment");
 }
 
 export async function deleteBrewer(id: string) {
@@ -109,8 +109,8 @@ export async function deleteBrewer(id: string) {
   await db
     .delete(brewers)
     .where(and(eq(brewers.id, id), eq(brewers.ownerId, user.id)));
-  revalidatePath("/library");
-  redirect("/library");
+  revalidatePath("/equipment");
+  redirect("/equipment");
 }
 
 // --- Inline create (called from the recipe form; returns the new row) ------
@@ -130,7 +130,7 @@ export async function createCoffeeInline(input: CoffeeInput): Promise<Coffee> {
       photoUrl: d.photoUrl || null,
     })
     .returning();
-  revalidatePath("/library");
+  revalidatePath("/equipment");
   return row;
 }
 
@@ -143,7 +143,7 @@ export async function createGrinderInline(
     .insert(grinders)
     .values({ ownerId: user.id, name: d.name })
     .returning();
-  revalidatePath("/library");
+  revalidatePath("/equipment");
   return row;
 }
 
@@ -154,7 +154,7 @@ export async function createBrewerInline(input: BrewerInput): Promise<Brewer> {
     .insert(brewers)
     .values({ ownerId: user.id, name: d.name, method: d.method })
     .returning();
-  revalidatePath("/library");
+  revalidatePath("/equipment");
   return row;
 }
 
@@ -166,7 +166,7 @@ export async function setDefaultGrinder(id: string | null) {
     .update(profiles)
     .set({ defaultGrinderId: id })
     .where(eq(profiles.id, user.id));
-  revalidatePath("/library");
+  revalidatePath("/equipment");
   revalidatePath("/account");
 }
 
@@ -176,6 +176,6 @@ export async function setDefaultBrewer(id: string | null) {
     .update(profiles)
     .set({ defaultBrewerId: id })
     .where(eq(profiles.id, user.id));
-  revalidatePath("/library");
+  revalidatePath("/equipment");
   revalidatePath("/account");
 }

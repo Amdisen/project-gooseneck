@@ -30,8 +30,8 @@ export async function SiteHeader() {
               <Link href="/recipes" className={link}>
                 My recipes
               </Link>
-              <Link href="/library" className={link}>
-                Library
+              <Link href="/equipment" className={link}>
+                Equipment
               </Link>
               <Link href="/account" className={link}>
                 Account

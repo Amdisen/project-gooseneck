@@ -36,7 +36,7 @@ const FEATURES = [
   { icon: ListNumbers, title: "Structured timeline", body: "Bloom and every pour as target water + time — not a wall of notes." },
   { icon: Timer, title: "Guided brew timer", body: "Timestamp-accurate countdown, wake-lock, and a cue on every pour." },
   { icon: ClockCounterClockwise, title: "Logbook loop", body: "Better / same / worse, auto-snapshots, and one-tap revert when a change flops." },
-  { icon: Books, title: "Reusable library", body: "Save coffees, grinders, and brewers once; pre-fill every new recipe." },
+  { icon: Books, title: "Reusable equipment", body: "Save coffees, grinders, and brewers once; pre-fill every new recipe." },
   { icon: Drop, title: "Real numbers", body: "Dose, ratio, water, temp, and time in a clean mono readout." },
   { icon: ShareNetwork, title: "Share & fork", body: "Publish to the feed; anyone can fork a recipe and re-dial it for their beans." },
 ];
