@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ImageSquare } from "@phosphor-icons/react/dist/ssr";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 
 const BUCKET = "recipe-photos";
 
@@ -77,22 +79,22 @@ export function PhotoUpload({
   }
 
   return (
-    <div className="flex flex-col gap-1 text-sm">
-      <span>{label}</span>
+    <div className="flex flex-col gap-1.5 text-sm">
+      <span className="font-medium text-foreground">{label}</span>
       <div className="flex items-center gap-3">
         {value ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={value}
             alt={label}
-            className="h-16 w-16 rounded border border-gray-300 object-cover"
+            className="size-16 rounded-md border border-border object-cover"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded border border-dashed border-gray-300 text-xs text-gray-400">
-            none
+          <div className="flex size-16 items-center justify-center rounded-md border border-dashed border-border-strong text-text-muted">
+            <ImageSquare size={22} aria-hidden />
           </div>
         )}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <input
             ref={inputRef}
             type="file"
@@ -106,25 +108,27 @@ export function PhotoUpload({
             }}
           />
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => inputRef.current?.click()}
               disabled={busy}
-              className="rounded border border-gray-300 px-3 py-1 text-sm disabled:opacity-50"
             >
               {busy ? "Uploading…" : value ? "Replace" : "Add photo"}
-            </button>
+            </Button>
             {value && !busy && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => onChange("")}
-                className="rounded border border-gray-300 px-3 py-1 text-sm"
               >
                 Remove
-              </button>
+              </Button>
             )}
           </div>
-          {error && <span className="text-xs text-red-700">{error}</span>}
+          {error && <span className="text-xs text-danger">{error}</span>}
         </div>
       </div>
     </div>

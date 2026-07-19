@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Bell, BellSlash } from "@phosphor-icons/react/dist/ssr";
 import { secondsToClock, type ActualPour } from "@/lib/validation/recipe";
+import { Button } from "@/components/ui/button";
 
 export type TimerStep = {
   label: string;
@@ -128,36 +130,39 @@ export function BrewTimer({
   }
 
   const started = running || accumMs > 0;
-  const btn =
-    "rounded px-4 py-3 text-base font-medium min-h-[56px] flex-1";
 
   return (
-    <div className="flex flex-col gap-5 rounded-lg border border-gray-200 bg-gray-50 p-5">
+    <div className="flex flex-col gap-5 rounded-lg border border-border bg-surface-2 p-5">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold">
+        <span className="font-display text-base font-medium text-foreground">
           {current ? current.label : "All pours complete"}
         </span>
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="icon"
           onClick={() => setMuted((m) => !m)}
-          className="rounded border border-gray-300 px-2 py-1 text-sm"
           aria-label={muted ? "Unmute" : "Mute"}
+          className="min-h-11 min-w-11"
         >
-          {muted ? "🔕" : "🔔"}
-        </button>
+          {muted ? <BellSlash size={18} /> : <Bell size={18} />}
+        </Button>
       </div>
 
       <div className="text-center">
-        <div className="font-mono text-6xl tabular-nums">
+        <div className="font-mono text-6xl tabular-nums text-foreground">
           {secondsToClock(elapsed)}
         </div>
         {current && (
-          <p className="mt-2 text-lg">
-            Pour to <span className="font-semibold">{current.targetTotal}g</span>
+          <p className="mt-2 text-lg text-foreground">
+            Pour to{" "}
+            <span className="font-mono font-semibold text-brand">
+              {current.targetTotal}g
+            </span>
           </p>
         )}
         {current && (
-          <p className="text-sm text-gray-500">
+          <p className="font-mono text-sm text-text-secondary">
             {countdown >= 0
               ? `next in ${secondsToClock(countdown)}`
               : `overdue ${secondsToClock(-countdown)}`}
@@ -165,10 +170,10 @@ export function BrewTimer({
         )}
       </div>
 
-      {/* progress */}
-      <div className="h-1.5 w-full overflow-hidden rounded bg-gray-200">
+      {/* progress — accent home per design.md §3.3 */}
+      <div className="h-1.5 w-full overflow-hidden rounded-sm bg-surface-3">
         <div
-          className="h-full bg-gray-900 transition-all"
+          className="h-full bg-brand transition-all"
           style={{
             width: `${lastEnd ? Math.min(100, (elapsed / lastEnd) * 100) : 0}%`,
           }}
@@ -176,7 +181,7 @@ export function BrewTimer({
       </div>
 
       {/* step list */}
-      <ol className="flex flex-col divide-y divide-gray-200 rounded border border-gray-200 bg-white text-sm">
+      <ol className="flex flex-col divide-y divide-border overflow-hidden rounded-md border border-border bg-card text-sm">
         {steps.map((s, i) => {
           const mark = marks[i];
           const isCurrent = i === currentIndex;
@@ -184,17 +189,17 @@ export function BrewTimer({
             <li
               key={i}
               className={`flex items-center justify-between p-2.5 ${
-                isCurrent ? "bg-amber-50" : ""
+                isCurrent ? "bg-surface-2" : ""
               }`}
             >
-              <span>
+              <span className="text-foreground">
                 {mark ? "✓ " : ""}
                 {s.label} · {s.targetTotal}g
               </span>
-              <span className="text-gray-500">
+              <span className="font-mono text-text-secondary">
                 {secondsToClock(s.endAtSec)}
                 {mark && (
-                  <span className="ml-2 text-gray-400">
+                  <span className="ml-2 text-text-muted">
                     (actual {secondsToClock(mark.actualSec)})
                   </span>
                 )}
@@ -206,49 +211,47 @@ export function BrewTimer({
 
       <div className="flex gap-2">
         {!started ? (
-          <button
+          <Button
             type="button"
             onClick={start}
-            className={`${btn} bg-gray-900 text-white`}
+            className="min-h-14 flex-1 text-base"
           >
             Start
-          </button>
+          </Button>
         ) : (
           <>
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={running ? pause : start}
-              className={`${btn} border border-gray-300`}
+              className="min-h-14 flex-1 text-base"
             >
               {running ? "Pause" : "Resume"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={markPour}
               disabled={marks.length >= steps.length}
-              className={`${btn} bg-gray-900 text-white disabled:opacity-40`}
+              className="min-h-14 flex-1 text-base"
             >
               Mark pour
-            </button>
+            </Button>
           </>
         )}
       </div>
 
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
+          variant="secondary"
           onClick={reset}
-          className="flex-1 rounded border border-gray-300 px-4 py-2 text-sm"
+          className="min-h-14 flex-1"
         >
           Reset
-        </button>
-        <button
-          type="button"
-          onClick={done}
-          className="flex-1 rounded border border-gray-900 px-4 py-2 text-sm font-medium"
-        >
+        </Button>
+        <Button type="button" onClick={done} className="min-h-14 flex-1">
           Done →
-        </button>
+        </Button>
       </div>
     </div>
   );

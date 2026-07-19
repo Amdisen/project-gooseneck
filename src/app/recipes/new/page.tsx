@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { coffees, grinders, brewers, profiles } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { RecipeForm } from "../recipe-form";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/components/page-header";
 
 export default async function NewRecipePage() {
   const user = await requireUser();
@@ -38,11 +39,12 @@ export default async function NewRecipePage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
-      <Link href="/recipes" className="text-sm text-gray-500 underline">
-        ← My recipes
-      </Link>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold">New V60 recipe</h1>
+    <Container width="prose" className="flex flex-col gap-8 py-10">
+      <PageHeader
+        eyebrow="New recipe"
+        title="New V60 recipe"
+        subtitle="Capture every variable so you can re-brew it exactly."
+      />
       <RecipeForm
         mode="create"
         coffees={myCoffees}
@@ -50,6 +52,6 @@ export default async function NewRecipePage() {
         brewers={myBrewers}
         defaults={defaults}
       />
-    </main>
+    </Container>
   );
 }

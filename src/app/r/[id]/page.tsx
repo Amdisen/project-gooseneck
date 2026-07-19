@@ -14,6 +14,14 @@ import { secondsToClock } from "@/lib/validation/recipe";
 import { getUser } from "@/lib/auth";
 import { forkRecipe } from "@/app/recipes/actions";
 import { addComment, deleteComment, reportComment } from "../actions";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/components/page-header";
+import { ParamGrid } from "@/components/param-grid";
+import { PourTimeline } from "@/components/pour-timeline";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 export default async function PublicRecipePage({
   params,
@@ -87,114 +95,111 @@ export default async function PublicRecipePage({
     .where(and(eq(comments.recipeId, id), isNull(comments.hiddenAt)))
     .orderBy(desc(comments.createdAt));
 
-  const bloomWater = draft?.bloomWaterGrams ?? 0;
-  let running = bloomWater;
-  const steps = (draft?.pours ?? []).map((p) => {
-    running += p.waterGrams;
-    return { at: p.stepEndAtSec, add: p.waterGrams, total: running };
-  });
-
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
-      <div>
-        <Link href="/feed" className="text-sm text-gray-500 underline">
-          ← Browse recipes
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold">{recipe.title}</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          by {author?.name ?? "a Gooseneck user"}
-          <span className="ml-2 uppercase text-gray-400">{recipe.method}</span>
+    <Container width="app" className="flex flex-col gap-8 py-10">
+      <div className="flex flex-col gap-3">
+        <PageHeader
+          eyebrow="Public recipe"
+          title={recipe.title}
+          actions={
+            user ? (
+              <form action={forkRecipe.bind(null, id)}>
+                <Button type="submit">Fork this recipe</Button>
+              </form>
+            ) : (
+              <Button asChild>
+                <Link href="/login">Sign in to fork</Link>
+              </Button>
+            )
+          }
+        />
+        <div className="flex flex-wrap items-center gap-2.5 text-sm text-text-secondary">
+          <span>by {author?.name ?? "a Gooseneck user"}</span>
+          <Badge variant="method">{recipe.method}</Badge>
           {avg != null && (
-            <span className="ml-2 text-amber-500">
+            <span className="font-mono text-brand">
               ★ {avg}{" "}
-              <span className="text-gray-400">({rated.length})</span>
+              <span className="text-text-muted">({rated.length})</span>
             </span>
           )}
+        </div>
+        <p className="text-xs text-text-muted">
+          Forking saves a private copy to your recipes to tweak.
         </p>
       </div>
 
-      <section className="flex items-center gap-3">
-        {user ? (
-          <form action={forkRecipe.bind(null, id)}>
-            <button className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
-              Fork this recipe
-            </button>
-          </form>
-        ) : (
-          <Link
-            href="/login"
-            className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            Sign in to fork
-          </Link>
-        )}
-        <span className="text-xs text-gray-500">
-          Saves a private copy to your recipes to tweak.
-        </span>
-      </section>
-
       {draft && (
         <>
-          <section className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-            <dt className="text-gray-500">Recipe</dt>
-            <dd>
-              {draft.doseGrams}g in · {draft.waterGrams}g water · ratio 1:
-              {draft.ratio ?? "—"} ·{" "}
-              {draft.totalBrewSeconds
-                ? secondsToClock(draft.totalBrewSeconds)
-                : "—"}{" "}
-              total
-            </dd>
-            {draft.beanName && (
-              <>
-                <dt className="text-gray-500">Bean</dt>
-                <dd>
-                  {draft.beanName}
-                  {draft.roaster ? ` · ${draft.roaster}` : ""}
-                  {draft.origin ? ` · ${draft.origin}` : ""}
-                  {draft.roastLevel ? ` · ${draft.roastLevel}` : ""}
-                  {draft.process ? ` · ${draft.process}` : ""}
-                </dd>
-              </>
-            )}
-            {(draft.grinderName || draft.grindSetting) && (
-              <>
-                <dt className="text-gray-500">Grinder</dt>
-                <dd>
-                  {[draft.grinderName, draft.grindSetting]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </dd>
-              </>
-            )}
-            {brewer && (
-              <>
-                <dt className="text-gray-500">Brewer</dt>
-                <dd>{brewer.name}</dd>
-              </>
-            )}
-            {draft.waterTempC != null && (
-              <>
-                <dt className="text-gray-500">Water temp</dt>
-                <dd>{draft.waterTempC}°C</dd>
-              </>
-            )}
-            {draft.filterType && (
-              <>
-                <dt className="text-gray-500">Filter</dt>
-                <dd>{draft.filterType}</dd>
-              </>
-            )}
-          </section>
+          <ParamGrid
+            items={[
+              { label: "Dose", value: `${draft.doseGrams}g` },
+              { label: "Water", value: `${draft.waterGrams}g` },
+              { label: "Ratio", value: `1:${draft.ratio ?? "—"}` },
+              {
+                label: "Total",
+                value: draft.totalBrewSeconds
+                  ? secondsToClock(draft.totalBrewSeconds)
+                  : "—",
+              },
+            ]}
+          />
+
+          {(draft.beanName ||
+            draft.grinderName ||
+            draft.grindSetting ||
+            brewer ||
+            draft.waterTempC != null ||
+            draft.filterType) && (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+              {draft.beanName && (
+                <>
+                  <dt className="text-text-muted">Bean</dt>
+                  <dd className="text-foreground">
+                    {[draft.beanName, draft.roaster, draft.origin, draft.roastLevel, draft.process]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </dd>
+                </>
+              )}
+              {(draft.grinderName || draft.grindSetting) && (
+                <>
+                  <dt className="text-text-muted">Grinder</dt>
+                  <dd className="text-foreground">
+                    {[draft.grinderName, draft.grindSetting]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </dd>
+                </>
+              )}
+              {brewer && (
+                <>
+                  <dt className="text-text-muted">Brewer</dt>
+                  <dd className="text-foreground">{brewer.name}</dd>
+                </>
+              )}
+              {draft.waterTempC != null && (
+                <>
+                  <dt className="text-text-muted">Water temp</dt>
+                  <dd className="font-mono text-foreground">{draft.waterTempC}°C</dd>
+                </>
+              )}
+              {draft.filterType && (
+                <>
+                  <dt className="text-text-muted">Filter</dt>
+                  <dd className="text-foreground">{draft.filterType}</dd>
+                </>
+              )}
+            </dl>
+          )}
 
           {(draft.beanPhotoUrl || draft.grindPhotoUrl) && (
-            <section className="flex gap-3">
+            <div className="flex gap-3">
               {draft.beanPhotoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={draft.beanPhotoUrl}
                   alt="Bean"
-                  className="h-28 w-28 rounded border border-gray-200 object-cover"
+                  className="size-28 rounded-lg border border-border object-cover"
                 />
               )}
               {draft.grindPhotoUrl && (
@@ -202,39 +207,29 @@ export default async function PublicRecipePage({
                 <img
                   src={draft.grindPhotoUrl}
                   alt="Grind"
-                  className="h-28 w-28 rounded border border-gray-200 object-cover"
+                  className="size-28 rounded-lg border border-border object-cover"
                 />
               )}
-            </section>
+            </div>
           )}
 
           <section>
-            <h2 className="mb-2 text-sm font-semibold">Timeline</h2>
-            <ol className="flex flex-col divide-y divide-gray-200 rounded border border-gray-200 text-sm">
-              <li className="flex items-center justify-between p-2.5">
-                <span>Bloom · {bloomWater}g</span>
-                <span className="text-gray-500">
-                  until {secondsToClock(draft.bloomSeconds ?? 0)}
-                </span>
-              </li>
-              {steps.map((s, i) => (
-                <li key={i} className="flex items-center justify-between p-2.5">
-                  <span>
-                    Pour {i + 1} · up to {s.total}g{" "}
-                    <span className="text-gray-400">(+{s.add}g)</span>
-                  </span>
-                  <span className="text-gray-500">
-                    by {secondsToClock(s.at)}
-                  </span>
-                </li>
-              ))}
-            </ol>
+            <h2 className="mb-2 font-display text-base font-medium text-foreground">
+              Timeline
+            </h2>
+            <PourTimeline
+              bloomWaterGrams={draft.bloomWaterGrams}
+              bloomSeconds={draft.bloomSeconds}
+              pours={draft.pours ?? []}
+            />
           </section>
 
           {draft.techniqueNotes && (
             <section>
-              <h2 className="mb-1 text-sm font-semibold">Notes</h2>
-              <p className="whitespace-pre-wrap text-sm text-gray-700">
+              <h2 className="mb-1 font-display text-base font-medium text-foreground">
+                Notes
+              </h2>
+              <p className="whitespace-pre-wrap text-sm text-text-secondary">
                 {draft.techniqueNotes}
               </p>
             </section>
@@ -244,88 +239,93 @@ export default async function PublicRecipePage({
 
       {publicLogs.length > 0 && (
         <section>
-          <h2 className="mb-2 text-sm font-semibold">
+          <h2 className="mb-2 font-display text-base font-medium text-foreground">
             The maker&apos;s brews
           </h2>
           <ul className="flex flex-col gap-2 text-sm">
             {publicLogs.map((l) => (
-              <li key={l.id} className="rounded border border-gray-200 p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">
-                    {l.brewedAt.toISOString().slice(0, 10)}
-                  </span>
-                  {l.rating != null && (
-                    <span className="text-amber-500">
-                      {"★".repeat(l.rating)}
+              <Card key={l.id} className="p-3" asChild>
+                <li>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-text-muted">
+                      {l.brewedAt.toISOString().slice(0, 10)}
                     </span>
-                  )}
-                </div>
-                {l.notes && <p className="mt-1">{l.notes}</p>}
-              </li>
+                    {l.rating != null && (
+                      <span className="text-brand">{"★".repeat(l.rating)}</span>
+                    )}
+                  </div>
+                  {l.notes && <p className="mt-1 text-foreground">{l.notes}</p>}
+                </li>
+              </Card>
             ))}
           </ul>
         </section>
       )}
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold">
+        <h2 className="mb-2 font-display text-base font-medium text-foreground">
           Comments ({commentRows.length})
         </h2>
         {user ? (
           <form
             action={addComment.bind(null, id)}
-            className="mb-3 flex flex-col gap-2"
+            className="mb-4 flex flex-col gap-2"
           >
-            <textarea
+            <Textarea
               name="body"
               required
               maxLength={1000}
               rows={2}
-              className="rounded border border-gray-300 px-3 py-2 text-sm"
               placeholder="Share how it went, or a tip…"
             />
-            <button className="self-start rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
+            <Button type="submit" size="sm" className="self-start">
               Post comment
-            </button>
+            </Button>
           </form>
         ) : (
-          <p className="mb-3 text-sm text-gray-500">
-            <Link href="/login" className="underline">
+          <p className="mb-4 text-sm text-text-secondary">
+            <Link href="/login" className="underline hover:text-foreground">
               Sign in
             </Link>{" "}
             to comment.
           </p>
         )}
         {commentRows.length === 0 ? (
-          <p className="text-sm text-gray-400">No comments yet.</p>
+          <p className="text-sm text-text-muted">No comments yet.</p>
         ) : (
           <ul className="flex flex-col gap-3 text-sm">
             {commentRows.map((c) => (
-              <li key={c.id} className="rounded border border-gray-200 p-3">
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{c.author ?? "A Gooseneck user"}</span>
-                  <span>{c.createdAt.toISOString().slice(0, 10)}</span>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap">{c.body}</p>
-                <div className="mt-1 flex gap-3 text-xs">
-                  {(user?.id === c.userId || user?.id === recipe.ownerId) && (
-                    <form action={deleteComment.bind(null, id, c.id)}>
-                      <button className="text-red-600 underline">Delete</button>
-                    </form>
-                  )}
-                  {user && user.id !== c.userId && (
-                    <form action={reportComment.bind(null, id, c.id)}>
-                      <button className="text-gray-400 underline">
-                        Report
-                      </button>
-                    </form>
-                  )}
-                </div>
-              </li>
+              <Card key={c.id} className="p-3" asChild>
+                <li>
+                  <div className="flex items-center justify-between text-xs text-text-muted">
+                    <span>{c.author ?? "A Gooseneck user"}</span>
+                    <span className="font-mono">
+                      {c.createdAt.toISOString().slice(0, 10)}
+                    </span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap text-foreground">
+                    {c.body}
+                  </p>
+                  <div className="mt-2 flex gap-3 text-xs">
+                    {(user?.id === c.userId || user?.id === recipe.ownerId) && (
+                      <form action={deleteComment.bind(null, id, c.id)}>
+                        <button className="text-danger underline">Delete</button>
+                      </form>
+                    )}
+                    {user && user.id !== c.userId && (
+                      <form action={reportComment.bind(null, id, c.id)}>
+                        <button className="text-text-muted underline hover:text-foreground">
+                          Report
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </li>
+              </Card>
             ))}
           </ul>
         )}
       </section>
-    </main>
+    </Container>
   );
 }

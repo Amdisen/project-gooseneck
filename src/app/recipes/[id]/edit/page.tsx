@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -12,6 +11,8 @@ import {
 import { requireUser } from "@/lib/auth";
 import { secondsToClock, versionToFormPours } from "@/lib/validation/recipe";
 import { RecipeForm, type FormState } from "../../recipe-form";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/components/page-header";
 
 export default async function EditRecipePage({
   params,
@@ -89,11 +90,8 @@ export default async function EditRecipePage({
   };
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
-      <Link href={`/recipes/${id}`} className="text-sm text-gray-500 underline">
-        ← Back to recipe
-      </Link>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold">Edit recipe</h1>
+    <Container width="prose" className="flex flex-col gap-8 py-10">
+      <PageHeader eyebrow="Edit" title="Edit recipe" />
       <RecipeForm
         mode="edit"
         recipeId={id}
@@ -102,6 +100,6 @@ export default async function EditRecipePage({
         grinders={myGrinders}
         brewers={myBrewers}
       />
-    </main>
+    </Container>
   );
 }

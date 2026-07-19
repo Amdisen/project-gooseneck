@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Sun, Moon } from "@phosphor-icons/react/dist/ssr";
+import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -20,13 +22,14 @@ export function ThemeToggle() {
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={toggle}
       aria-label="Toggle light/dark theme"
-      className="rounded-md border border-border px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
     >
-      {theme === "dark" ? "☀" : "☾"}
-    </button>
+      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+    </Button>
   );
 }

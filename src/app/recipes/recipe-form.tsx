@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "@phosphor-icons/react/dist/ssr";
 import {
   ROAST_LEVELS,
   recipeFormSchema,
@@ -19,6 +20,13 @@ import {
 } from "@/app/library/actions";
 import type { Coffee, Grinder, Brewer } from "@/lib/db/schema";
 import { PhotoUpload } from "./photo-upload";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/alert";
 
 type PourRow = { target: string; at: string };
 
@@ -303,38 +311,23 @@ export function RecipeForm({
     });
   }
 
-  const field = "rounded border border-gray-300 px-3 py-2";
-  const labelCls = "flex flex-col gap-1 text-sm";
-
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      {error && (
-        <p className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          {error}
-        </p>
-      )}
-      {libError && (
-        <p className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          {libError}
-        </p>
-      )}
+      {error && <Alert variant="danger">{error}</Alert>}
+      {libError && <Alert variant="danger">{libError}</Alert>}
 
-      <label className={labelCls}>
-        <span className="font-medium">Title *</span>
-        <input
-          className={field}
+      <Field label="Title *">
+        <Input
           value={form.title}
           onChange={(e) => set("title", e.target.value)}
           placeholder="Morning Ethiopian"
         />
-      </label>
+      </Field>
 
       <fieldset className="grid gap-3 sm:grid-cols-2">
-        <legend className="mb-1 text-sm font-semibold">Bean</legend>
-        <label className={`${labelCls} sm:col-span-2`}>
-          <span>Coffee (from your library)</span>
-          <select
-            className={field}
+        <legend className="mb-1 text-sm font-semibold text-foreground">Bean</legend>
+        <Field label="Coffee (from your library)" className="sm:col-span-2">
+          <Select
             value={adding.coffee ? "__new__" : form.coffeeId}
             onChange={(e) => pickCoffee(e.target.value)}
           >
@@ -346,59 +339,53 @@ export function RecipeForm({
               </option>
             ))}
             <option value="__new__">+ New coffee…</option>
-          </select>
-        </label>
+          </Select>
+        </Field>
         {adding.coffee && (
-          <div className="flex flex-col gap-2 rounded border border-gray-200 p-3 sm:col-span-2">
+          <Card className="flex flex-col gap-2 p-3 sm:col-span-2">
             <div className="grid grid-cols-2 gap-2">
-              <input className={field} placeholder="Name *" value={newCoffee.name} onChange={(e) => setNewCoffee({ ...newCoffee, name: e.target.value })} />
-              <input className={field} placeholder="Roaster" value={newCoffee.roaster} onChange={(e) => setNewCoffee({ ...newCoffee, roaster: e.target.value })} />
-              <input className={field} placeholder="Origin" value={newCoffee.origin} onChange={(e) => setNewCoffee({ ...newCoffee, origin: e.target.value })} />
-              <select className={field} value={newCoffee.roastLevel} onChange={(e) => setNewCoffee({ ...newCoffee, roastLevel: e.target.value })}>
+              <Input placeholder="Name *" value={newCoffee.name} onChange={(e) => setNewCoffee({ ...newCoffee, name: e.target.value })} />
+              <Input placeholder="Roaster" value={newCoffee.roaster} onChange={(e) => setNewCoffee({ ...newCoffee, roaster: e.target.value })} />
+              <Input placeholder="Origin" value={newCoffee.origin} onChange={(e) => setNewCoffee({ ...newCoffee, origin: e.target.value })} />
+              <Select value={newCoffee.roastLevel} onChange={(e) => setNewCoffee({ ...newCoffee, roastLevel: e.target.value })}>
                 <option value="">Roast level</option>
                 {ROAST_LEVELS.map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
-              </select>
-              <input className={field} placeholder="Process" value={newCoffee.process} onChange={(e) => setNewCoffee({ ...newCoffee, process: e.target.value })} list="process-options" />
+              </Select>
+              <Input placeholder="Process" value={newCoffee.process} onChange={(e) => setNewCoffee({ ...newCoffee, process: e.target.value })} list="process-options" />
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={addCoffee} className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white">
+              <Button type="button" size="sm" onClick={addCoffee}>
                 Add to library
-              </button>
-              <button type="button" onClick={() => setAdding((a) => ({ ...a, coffee: false }))} className="rounded border border-gray-300 px-3 py-1.5 text-sm">
+              </Button>
+              <Button type="button" size="sm" variant="secondary" onClick={() => setAdding((a) => ({ ...a, coffee: false }))}>
                 Cancel
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         )}
-        <label className={labelCls}>
-          <span>Name</span>
-          <input className={field} value={form.beanName} onChange={(e) => set("beanName", e.target.value)} />
-        </label>
-        <label className={labelCls}>
-          <span>Roaster</span>
-          <input className={field} value={form.roaster} onChange={(e) => set("roaster", e.target.value)} />
-        </label>
-        <label className={labelCls}>
-          <span>Origin</span>
-          <input className={field} value={form.origin} onChange={(e) => set("origin", e.target.value)} />
-        </label>
-        <label className={labelCls}>
-          <span>Roast level</span>
-          <select className={field} value={form.roastLevel} onChange={(e) => set("roastLevel", e.target.value)}>
+        <Field label="Name">
+          <Input value={form.beanName} onChange={(e) => set("beanName", e.target.value)} />
+        </Field>
+        <Field label="Roaster">
+          <Input value={form.roaster} onChange={(e) => set("roaster", e.target.value)} />
+        </Field>
+        <Field label="Origin">
+          <Input value={form.origin} onChange={(e) => set("origin", e.target.value)} />
+        </Field>
+        <Field label="Roast level">
+          <Select value={form.roastLevel} onChange={(e) => set("roastLevel", e.target.value)}>
             <option value="">—</option>
             {ROAST_LEVELS.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
             ))}
-          </select>
-        </label>
-        <label className={labelCls}>
-          <span>Process</span>
-          <input
-            className={field}
+          </Select>
+        </Field>
+        <Field label="Process">
+          <Input
             value={form.process}
             onChange={(e) => set("process", e.target.value)}
             placeholder="washed, natural…"
@@ -410,7 +397,7 @@ export function RecipeForm({
             <option value="Honey" />
             <option value="Anaerobic" />
           </datalist>
-        </label>
+        </Field>
         <div className="sm:col-span-2">
           <PhotoUpload
             label="Bean photo"
@@ -421,11 +408,9 @@ export function RecipeForm({
       </fieldset>
 
       <fieldset className="grid gap-3 sm:grid-cols-2">
-        <legend className="mb-1 text-sm font-semibold">Grinder</legend>
-        <label className={`${labelCls} sm:col-span-2`}>
-          <span>Grinder (from your library)</span>
-          <select
-            className={field}
+        <legend className="mb-1 text-sm font-semibold text-foreground">Grinder</legend>
+        <Field label="Grinder (from your library)" className="sm:col-span-2">
+          <Select
             value={adding.grinder ? "__new__" : form.grinderId}
             onChange={(e) => pickGrinder(e.target.value)}
           >
@@ -436,23 +421,21 @@ export function RecipeForm({
               </option>
             ))}
             <option value="__new__">+ New grinder…</option>
-          </select>
-        </label>
+          </Select>
+        </Field>
         {adding.grinder && (
           <div className="flex gap-2 sm:col-span-2">
-            <input className={`${field} flex-1`} placeholder="Grinder name" value={newGrinder} onChange={(e) => setNewGrinder(e.target.value)} />
-            <button type="button" onClick={addGrinder} className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white">Add</button>
-            <button type="button" onClick={() => setAdding((a) => ({ ...a, grinder: false }))} className="rounded border border-gray-300 px-3 py-1.5 text-sm">Cancel</button>
+            <Input className="flex-1" placeholder="Grinder name" value={newGrinder} onChange={(e) => setNewGrinder(e.target.value)} />
+            <Button type="button" onClick={addGrinder}>Add</Button>
+            <Button type="button" variant="secondary" onClick={() => setAdding((a) => ({ ...a, grinder: false }))}>Cancel</Button>
           </div>
         )}
-        <label className={labelCls}>
-          <span>Grinder name</span>
-          <input className={field} value={form.grinderName} onChange={(e) => set("grinderName", e.target.value)} />
-        </label>
-        <label className={labelCls}>
-          <span>Grind setting</span>
-          <input className={field} value={form.grindSetting} onChange={(e) => set("grindSetting", e.target.value)} placeholder="e.g. 22 clicks" />
-        </label>
+        <Field label="Grinder name">
+          <Input value={form.grinderName} onChange={(e) => set("grinderName", e.target.value)} />
+        </Field>
+        <Field label="Grind setting">
+          <Input value={form.grindSetting} onChange={(e) => set("grindSetting", e.target.value)} placeholder="e.g. 22 clicks" />
+        </Field>
         <div className="sm:col-span-2">
           <PhotoUpload
             label="Grind photo"
@@ -463,9 +446,8 @@ export function RecipeForm({
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-sm font-semibold">Brewer</legend>
-        <select
-          className={field}
+        <legend className="mb-1 text-sm font-semibold text-foreground">Brewer</legend>
+        <Select
           value={adding.brewer ? "__new__" : form.brewerId}
           onChange={(e) => pickBrewer(e.target.value)}
         >
@@ -476,130 +458,111 @@ export function RecipeForm({
             </option>
           ))}
           <option value="__new__">+ New brewer…</option>
-        </select>
+        </Select>
         {adding.brewer && (
           <div className="flex gap-2">
-            <input className={`${field} flex-1`} placeholder="Brewer name (e.g. Hario V60 02)" value={newBrewer} onChange={(e) => setNewBrewer(e.target.value)} />
-            <button type="button" onClick={addBrewer} className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white">Add</button>
-            <button type="button" onClick={() => setAdding((a) => ({ ...a, brewer: false }))} className="rounded border border-gray-300 px-3 py-1.5 text-sm">Cancel</button>
+            <Input className="flex-1" placeholder="Brewer name (e.g. Hario V60 02)" value={newBrewer} onChange={(e) => setNewBrewer(e.target.value)} />
+            <Button type="button" onClick={addBrewer}>Add</Button>
+            <Button type="button" variant="secondary" onClick={() => setAdding((a) => ({ ...a, brewer: false }))}>Cancel</Button>
           </div>
         )}
       </fieldset>
 
       <fieldset className="grid gap-3 sm:grid-cols-3">
-        <legend className="mb-1 text-sm font-semibold">Brew</legend>
-        <label className={labelCls}>
-          <span>Dose (g) *</span>
-          <input className={field} type="number" step="0.1" value={form.dose} onChange={(e) => set("dose", e.target.value)} placeholder="18" />
-        </label>
-        <label className={labelCls}>
-          <span>Water temp (°C)</span>
-          <input className={field} type="number" step="1" value={form.waterTemp} onChange={(e) => set("waterTemp", e.target.value)} placeholder="94" />
-        </label>
-        <label className={labelCls}>
-          <span>Filter</span>
-          <input className={field} value={form.filterType} onChange={(e) => set("filterType", e.target.value)} placeholder="Hario tabbed" />
-        </label>
+        <legend className="mb-1 text-sm font-semibold text-foreground">Brew</legend>
+        <Field label="Dose (g) *">
+          <Input type="number" inputMode="decimal" step="0.1" value={form.dose} onChange={(e) => set("dose", e.target.value)} placeholder="18" />
+        </Field>
+        <Field label="Water temp (°C)">
+          <Input type="number" inputMode="numeric" step="1" value={form.waterTemp} onChange={(e) => set("waterTemp", e.target.value)} placeholder="94" />
+        </Field>
+        <Field label="Filter">
+          <Input value={form.filterType} onChange={(e) => set("filterType", e.target.value)} placeholder="Hario tabbed" />
+        </Field>
       </fieldset>
 
       <fieldset className="grid gap-3 sm:grid-cols-2">
-        <legend className="mb-1 text-sm font-semibold">Bloom</legend>
-        <label className={labelCls}>
-          <span>Bloom water (g) *</span>
-          <input className={field} type="number" step="1" value={form.bloomWater} onChange={(e) => set("bloomWater", e.target.value)} placeholder="50" />
-        </label>
-        <label className={labelCls}>
-          <span>Bloom until (m:ss) *</span>
-          <input className={field} value={form.bloomUntil} onChange={(e) => set("bloomUntil", e.target.value)} placeholder="0:45" />
-        </label>
+        <legend className="mb-1 text-sm font-semibold text-foreground">Bloom</legend>
+        <Field label="Bloom water (g) *">
+          <Input type="number" inputMode="numeric" step="1" value={form.bloomWater} onChange={(e) => set("bloomWater", e.target.value)} placeholder="50" />
+        </Field>
+        <Field label="Bloom until (m:ss) *">
+          <Input value={form.bloomUntil} onChange={(e) => set("bloomUntil", e.target.value)} placeholder="0:45" />
+        </Field>
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-sm font-semibold">
+        <legend className="mb-1 text-sm font-semibold text-foreground">
           Pours — total water on the scale, and the time to reach it
         </legend>
         {form.pours.map((p, i) => (
           <div key={i} className="flex items-end gap-2">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span>Up to (g)</span>
-              <input
-                className={field}
+            <Field label="Up to (g)" className="flex-1">
+              <Input
                 type="number"
+                inputMode="numeric"
                 step="1"
                 value={p.target}
                 onChange={(e) => setPour(i, "target", e.target.value)}
                 placeholder={i === 0 ? "150" : "250"}
               />
-            </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span>By (m:ss)</span>
-              <input
-                className={field}
+            </Field>
+            <Field label="By (m:ss)" className="flex-1">
+              <Input
                 value={p.at}
                 onChange={(e) => setPour(i, "at", e.target.value)}
                 placeholder="1:15"
               />
-            </label>
-            <span className="pb-2 text-xs text-gray-500 w-20">
+            </Field>
+            <span className="w-14 pb-3 font-mono text-xs text-text-muted">
               {Number.isFinite(preview.rows[i]?.inc)
                 ? `+${preview.rows[i].inc.toFixed(0)}g`
                 : ""}
             </span>
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="icon"
               onClick={() => removePour(i)}
               disabled={form.pours.length === 1}
-              className="mb-2 rounded border border-gray-300 px-2 py-1 text-sm disabled:opacity-40"
               aria-label="Remove pour"
             >
-              ✕
-            </button>
+              <X size={16} />
+            </Button>
           </div>
         ))}
-        <button
-          type="button"
-          onClick={addPour}
-          className="self-start rounded border border-gray-300 px-3 py-1 text-sm"
-        >
+        <Button type="button" variant="secondary" size="sm" className="self-start" onClick={addPour}>
           + Add pour
-        </button>
+        </Button>
       </fieldset>
 
-      <label className={labelCls}>
-        <span className="font-medium">Notes</span>
-        <textarea
-          className={field}
+      <Field label="Notes">
+        <Textarea
           rows={3}
           value={form.techniqueNotes}
           onChange={(e) => set("techniqueNotes", e.target.value)}
           placeholder="Swirl after bloom; gentle center pours…"
         />
-      </label>
+      </Field>
 
-      <div className="rounded border border-gray-200 bg-gray-50 p-3 text-sm">
+      <Card className="bg-surface-2 p-3 text-sm text-foreground">
         <span className="font-medium">Summary: </span>
-        {Number.isFinite(preview.total) ? `${preview.total.toFixed(0)}g water` : "—g water"}
-        {" · "}
-        {Number.isFinite(preview.ratio) ? `1:${preview.ratio}` : "1:—"} ratio
-        {" · "}
-        {preview.lastSec > 0 ? secondsToClock(preview.lastSec) : "—"} total
-      </div>
+        <span className="font-mono">
+          {Number.isFinite(preview.total) ? `${preview.total.toFixed(0)}g water` : "—g water"}
+          {" · "}
+          {Number.isFinite(preview.ratio) ? `1:${preview.ratio}` : "1:—"} ratio
+          {" · "}
+          {preview.lastSec > 0 ? secondsToClock(preview.lastSec) : "—"} total
+        </span>
+      </Card>
 
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-gray-900 px-4 py-2 font-medium text-white disabled:opacity-50"
-        >
+      <div className="sticky bottom-0 z-10 flex gap-2 border-t border-border bg-background py-3">
+        <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : mode === "create" ? "Create recipe" : "Save changes"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="rounded border border-gray-300 px-4 py-2 font-medium"
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

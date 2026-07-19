@@ -1,10 +1,14 @@
-import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { profiles } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { signout } from "@/app/login/actions";
 import { updateDisplayName } from "./actions";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/components/page-header";
+import { List, ListRow } from "@/components/list-row";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default async function AccountPage() {
   const user = await requireUser();
@@ -16,41 +20,43 @@ export default async function AccountPage() {
     .limit(1);
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col gap-6 p-6">
-      <Link href="/recipes" className="text-sm text-gray-500 underline">
-        ← My recipes
-      </Link>
-      <h1 className="text-2xl font-semibold">Your account</h1>
+    <Container width="prose" className="flex flex-col gap-8 py-10">
+      <PageHeader
+        eyebrow="Account"
+        title="Settings"
+        subtitle="Manage your profile and session."
+      />
 
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="font-medium text-gray-500">Email</dt>
-        <dd>{user.email}</dd>
-        <dt className="font-medium text-gray-500">Display name</dt>
-        <dd>{profile?.displayName ?? "—"}</dd>
-      </dl>
-
-      <form action={updateDisplayName} className="flex flex-col gap-2">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium">Update display name</span>
-          <input
-            type="text"
-            name="displayName"
-            required
-            maxLength={80}
-            defaultValue={profile?.displayName ?? ""}
-            className="rounded border border-gray-300 px-3 py-2"
-          />
-        </label>
-        <button className="self-start rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white">
-          Save
-        </button>
-      </form>
-
-      <form action={signout}>
-        <button className="rounded border border-gray-300 px-4 py-2 text-sm font-medium">
-          Sign out
-        </button>
-      </form>
-    </main>
+      <List>
+        <ListRow label="Email" description={user.email} />
+        <ListRow label="Display name">
+          <form action={updateDisplayName} className="flex items-center gap-2">
+            <Input
+              type="text"
+              name="displayName"
+              required
+              maxLength={80}
+              defaultValue={profile?.displayName ?? ""}
+              placeholder="Your name"
+              aria-label="Display name"
+              className="h-9 w-44"
+            />
+            <Button size="sm" type="submit">
+              Save
+            </Button>
+          </form>
+        </ListRow>
+        <ListRow
+          label="Sign out"
+          description="End your session on this device."
+        >
+          <form action={signout}>
+            <Button variant="secondary" size="sm" type="submit">
+              Sign out
+            </Button>
+          </form>
+        </ListRow>
+      </List>
+    </Container>
   );
 }

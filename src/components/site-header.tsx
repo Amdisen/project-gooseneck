@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import { Container } from "@/components/container";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 
 /** Persistent top navigation shown on every page. Adapts to auth state. */
 export async function SiteHeader() {
@@ -38,12 +39,11 @@ export async function SiteHeader() {
             </>
           )}
           <ThemeToggle />
-          <Link
-            href={user ? "/recipes/new" : "/login"}
-            className="rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground"
-          >
-            {user ? "+ New" : "Sign in"}
-          </Link>
+          <Button size="sm" asChild>
+            <Link href={user ? "/recipes/new" : "/login"}>
+              {user ? "+ New" : "Sign in"}
+            </Link>
+          </Button>
         </div>
       </Container>
     </header>

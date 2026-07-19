@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { ArrowCounterClockwise } from "@phosphor-icons/react/dist/ssr";
 import { db } from "@/lib/db";
 import { recipes, recipeVersions, brewLogs } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
 import { secondsToClock } from "@/lib/validation/recipe";
 import { diffSnapshots } from "@/lib/recipe-diff";
 import { deleteRecipe, revertDraftToVersion, setVisibility } from "../actions";
+import { Container } from "@/components/container";
+import { PageHeader } from "@/components/page-header";
+import { ParamGrid } from "@/components/param-grid";
+import { PourTimeline } from "@/components/pour-timeline";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const outcomeSymbol = (o: string | null) =>
   o === "better" ? "▲ better" : o === "worse" ? "▼ worse" : o === "same" ? "= same" : "—";
@@ -80,44 +88,29 @@ export default async function RecipePage({
     }
   });
 
-  const bloomWater = draft?.bloomWaterGrams ?? 0;
-  let running = bloomWater;
-  const steps = (draft?.pours ?? []).map((p) => {
-    running += p.waterGrams;
-    return { at: p.stepEndAtSec, add: p.waterGrams, total: running };
-  });
-
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
-      <div>
-        <Link href="/recipes" className="text-sm text-gray-500 underline">
-          ← My recipes
-        </Link>
-        <div className="mt-2 flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-semibold">{recipe.title}</h1>
-          <Link
-            href={`/recipes/${id}/edit`}
-            className="shrink-0 rounded border border-gray-300 px-3 py-1.5 text-sm font-medium"
-          >
-            Edit
-          </Link>
-        </div>
-        {draft && (
-          <p className="mt-1 text-sm text-gray-500">
-            {draft.doseGrams}g in · {draft.waterGrams}g water · ratio 1:
-            {draft.ratio ?? "—"} ·{" "}
-            {draft.totalBrewSeconds
-              ? secondsToClock(draft.totalBrewSeconds)
-              : "—"}{" "}
-            total
-          </p>
-        )}
+    <Container width="app" className="flex flex-col gap-8 py-10">
+      <div className="flex flex-col gap-2">
+        <PageHeader
+          eyebrow="Recipe"
+          title={recipe.title}
+          actions={
+            <>
+              <Badge variant={recipe.visibility === "public" ? "solid" : "outline"}>
+                {recipe.visibility === "public" ? "Public" : "Private"}
+              </Badge>
+              <Button variant="secondary" size="sm" asChild>
+                <Link href={`/recipes/${id}/edit`}>Edit</Link>
+              </Button>
+            </>
+          }
+        />
         {recipe.forkedFromRecipeId && (
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="text-xs text-text-muted">
             Forked from{" "}
             <Link
               href={`/r/${recipe.forkedFromRecipeId}`}
-              className="underline"
+              className="text-text-secondary underline hover:text-foreground"
             >
               the original
             </Link>
@@ -125,113 +118,131 @@ export default async function RecipePage({
         )}
       </div>
 
-      <section className="flex items-center justify-between rounded border border-gray-200 p-3 text-sm">
-        <span>
+      {/* Publish / visibility */}
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+        <span className="text-sm text-text-secondary">
           {recipe.visibility === "public" ? (
             <>
-              Public ·{" "}
-              <Link href={`/r/${id}`} className="underline">
+              This recipe is public ·{" "}
+              <Link
+                href={`/r/${id}`}
+                className="text-foreground underline hover:text-brand"
+              >
                 View public page
               </Link>
             </>
           ) : (
-            "Private"
+            "This recipe is private."
           )}
         </span>
         <form
-          action={setVisibility.bind(
-            null,
-            id,
-            recipe.visibility !== "public",
-          )}
+          action={setVisibility.bind(null, id, recipe.visibility !== "public")}
         >
-          <button className="rounded border border-gray-300 px-3 py-1.5 font-medium">
+          <Button variant="secondary" size="sm" type="submit">
             {recipe.visibility === "public" ? "Unpublish" : "Publish"}
-          </button>
+          </Button>
         </form>
-      </section>
+      </Card>
 
       {/* Before you brew */}
-      <section className="flex flex-col gap-3 rounded border border-gray-200 p-4">
+      <Card className="flex flex-col gap-3 p-5">
         {nextTip && (
-          <p className="text-sm">
+          <p className="text-sm text-foreground">
             <span className="font-medium">Before you brew — try:</span> {nextTip}
           </p>
         )}
         {sinceLastBrew.length > 0 && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-text-secondary">
             Changed since your last brew: {sinceLastBrew.join(" · ")}
           </p>
         )}
-        <Link
-          href={`/recipes/${id}/brew`}
-          className="self-start rounded bg-gray-900 px-5 py-2.5 font-medium text-white"
-        >
-          Brew this →
-        </Link>
-      </section>
+        <Button size="lg" className="self-start" asChild>
+          <Link href={`/recipes/${id}/brew`}>Brew this →</Link>
+        </Button>
+      </Card>
 
       {revertVersionId && (
-        <div className="flex flex-col gap-2 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          <span>Your last brew was worse than the one before it.</span>
+        <Card className="flex flex-wrap items-center justify-between gap-3 bg-surface-2 p-4">
+          <span className="flex items-center gap-2 text-sm text-text-secondary">
+            <ArrowCounterClockwise size={18} aria-hidden />
+            Your last brew was worse than the one before it.
+          </span>
           <form action={revertDraftToVersion.bind(null, id, revertVersionId)}>
-            <button className="rounded border border-amber-400 px-3 py-1.5 font-medium">
+            <Button variant="secondary" size="sm" type="submit">
               Revert to previous settings
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
       )}
 
       {draft && (
         <>
-          <section className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-            {draft.beanName && (
-              <>
-                <dt className="text-gray-500">Bean</dt>
-                <dd>
-                  {draft.beanName}
-                  {draft.roaster ? ` · ${draft.roaster}` : ""}
-                  {draft.origin ? ` · ${draft.origin}` : ""}
-                  {draft.roastLevel ? ` · ${draft.roastLevel}` : ""}
-                  {draft.process ? ` · ${draft.process}` : ""}
-                </dd>
-              </>
-            )}
-            {(draft.grinderName || draft.grindSetting) && (
-              <>
-                <dt className="text-gray-500">Grinder</dt>
-                <dd>
-                  {[draft.grinderName, draft.grindSetting]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </dd>
-              </>
-            )}
-            {draft.waterTempC != null && (
-              <>
-                <dt className="text-gray-500">Water temp</dt>
-                <dd>{draft.waterTempC}°C</dd>
-              </>
-            )}
-            {draft.filterType && (
-              <>
-                <dt className="text-gray-500">Filter</dt>
-                <dd>{draft.filterType}</dd>
-              </>
-            )}
-          </section>
+          <ParamGrid
+            items={[
+              { label: "Dose", value: `${draft.doseGrams}g` },
+              { label: "Water", value: `${draft.waterGrams}g` },
+              { label: "Ratio", value: `1:${draft.ratio ?? "—"}` },
+              {
+                label: "Total",
+                value: draft.totalBrewSeconds
+                  ? secondsToClock(draft.totalBrewSeconds)
+                  : "—",
+              },
+            ]}
+          />
+
+          {(draft.beanName ||
+            draft.grinderName ||
+            draft.grindSetting ||
+            draft.waterTempC != null ||
+            draft.filterType) && (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+              {draft.beanName && (
+                <>
+                  <dt className="text-text-muted">Bean</dt>
+                  <dd className="text-foreground">
+                    {[draft.beanName, draft.roaster, draft.origin, draft.roastLevel, draft.process]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </dd>
+                </>
+              )}
+              {(draft.grinderName || draft.grindSetting) && (
+                <>
+                  <dt className="text-text-muted">Grinder</dt>
+                  <dd className="text-foreground">
+                    {[draft.grinderName, draft.grindSetting]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </dd>
+                </>
+              )}
+              {draft.waterTempC != null && (
+                <>
+                  <dt className="text-text-muted">Water temp</dt>
+                  <dd className="font-mono text-foreground">{draft.waterTempC}°C</dd>
+                </>
+              )}
+              {draft.filterType && (
+                <>
+                  <dt className="text-text-muted">Filter</dt>
+                  <dd className="text-foreground">{draft.filterType}</dd>
+                </>
+              )}
+            </dl>
+          )}
 
           {(draft.beanPhotoUrl || draft.grindPhotoUrl) && (
-            <section className="flex gap-3">
+            <div className="flex gap-3">
               {draft.beanPhotoUrl && (
                 <figure className="flex flex-col gap-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={draft.beanPhotoUrl}
                     alt="Bean"
-                    className="h-28 w-28 rounded border border-gray-200 object-cover"
+                    className="size-28 rounded-lg border border-border object-cover"
                   />
-                  <figcaption className="text-xs text-gray-500">Bean</figcaption>
+                  <figcaption className="text-xs text-text-muted">Bean</figcaption>
                 </figure>
               )}
               {draft.grindPhotoUrl && (
@@ -240,42 +251,31 @@ export default async function RecipePage({
                   <img
                     src={draft.grindPhotoUrl}
                     alt="Grind"
-                    className="h-28 w-28 rounded border border-gray-200 object-cover"
+                    className="size-28 rounded-lg border border-border object-cover"
                   />
-                  <figcaption className="text-xs text-gray-500">Grind</figcaption>
+                  <figcaption className="text-xs text-text-muted">Grind</figcaption>
                 </figure>
               )}
-            </section>
+            </div>
           )}
 
           <section>
-            <h2 className="mb-2 text-sm font-semibold">Timeline</h2>
-            <ol className="flex flex-col divide-y divide-gray-200 rounded border border-gray-200 text-sm">
-              <li className="flex items-center justify-between p-2.5">
-                <span>Bloom · {bloomWater}g</span>
-                <span className="text-gray-500">
-                  until {secondsToClock(draft.bloomSeconds ?? 0)}
-                </span>
-              </li>
-              {steps.map((s, i) => (
-                <li
-                  key={i}
-                  className="flex items-center justify-between p-2.5"
-                >
-                  <span>
-                    Pour {i + 1} · up to {s.total}g{" "}
-                    <span className="text-gray-400">(+{s.add}g)</span>
-                  </span>
-                  <span className="text-gray-500">by {secondsToClock(s.at)}</span>
-                </li>
-              ))}
-            </ol>
+            <h2 className="mb-2 font-display text-base font-medium text-foreground">
+              Timeline
+            </h2>
+            <PourTimeline
+              bloomWaterGrams={draft.bloomWaterGrams}
+              bloomSeconds={draft.bloomSeconds}
+              pours={draft.pours ?? []}
+            />
           </section>
 
           {draft.techniqueNotes && (
             <section>
-              <h2 className="mb-1 text-sm font-semibold">Notes</h2>
-              <p className="whitespace-pre-wrap text-sm text-gray-700">
+              <h2 className="mb-1 font-display text-base font-medium text-foreground">
+                Notes
+              </h2>
+              <p className="whitespace-pre-wrap text-sm text-text-secondary">
                 {draft.techniqueNotes}
               </p>
             </section>
@@ -284,11 +284,11 @@ export default async function RecipePage({
       )}
 
       {wontRepeat.length > 0 && (
-        <details className="rounded border border-gray-200 text-sm">
-          <summary className="cursor-pointer select-none px-3 py-2 font-medium text-gray-700">
+        <details className="overflow-hidden rounded-lg border border-border text-sm">
+          <summary className="cursor-pointer select-none px-4 py-3 font-medium text-foreground">
             Tried — didn&apos;t help ({wontRepeat.length})
           </summary>
-          <ul className="flex flex-col gap-1 border-t border-gray-200 p-3 text-gray-500">
+          <ul className="flex flex-col gap-1 border-t border-border p-4 text-text-secondary">
             {wontRepeat.map((w, i) => (
               <li key={i}>✗ {w}</li>
             ))}
@@ -297,20 +297,20 @@ export default async function RecipePage({
       )}
 
       {logs.length > 0 && (
-        <details className="rounded border border-gray-200 text-sm">
-          <summary className="cursor-pointer select-none px-3 py-2 font-medium text-gray-700">
+        <details className="overflow-hidden rounded-lg border border-border text-sm">
+          <summary className="cursor-pointer select-none px-4 py-3 font-medium text-foreground">
             Brew history ({logs.length})
           </summary>
-          <div className="overflow-x-auto border-t border-gray-200">
+          <div className="overflow-x-auto border-t border-border">
             <table className="w-full text-left text-xs">
-              <thead className="text-gray-500">
-                <tr className="border-b border-gray-200">
-                  <th className="p-2 font-medium">Date</th>
-                  <th className="p-2 font-medium">vs last</th>
-                  <th className="p-2 font-medium">Rating</th>
-                  <th className="p-2 font-medium">Recipe</th>
-                  <th className="p-2 font-medium">Changed</th>
-                  <th className="p-2 font-medium">Notes</th>
+              <thead className="text-text-muted">
+                <tr className="border-b border-border">
+                  <th className="p-2.5 font-medium">Date</th>
+                  <th className="p-2.5 font-medium">vs last</th>
+                  <th className="p-2.5 font-medium">Rating</th>
+                  <th className="p-2.5 font-medium">Recipe</th>
+                  <th className="p-2.5 font-medium">Changed</th>
+                  <th className="p-2.5 font-medium">Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -328,34 +328,34 @@ export default async function RecipePage({
                   return (
                     <tr
                       key={l.id}
-                      className="border-b border-gray-100 align-top last:border-0"
+                      className="border-b border-border align-top last:border-0"
                     >
-                      <td className="whitespace-nowrap p-2 text-gray-500">
+                      <td className="whitespace-nowrap p-2.5 font-mono text-text-muted">
                         {l.brewedAt.toISOString().slice(0, 10)}
                       </td>
-                      <td className="whitespace-nowrap p-2 text-gray-600">
+                      <td className="whitespace-nowrap p-2.5 text-text-secondary">
                         {outcomeSymbol(l.outcome)}
                       </td>
-                      <td className="whitespace-nowrap p-2 text-amber-500">
+                      <td className="whitespace-nowrap p-2.5 text-brand">
                         {l.rating != null ? "★".repeat(l.rating) : "—"}
                       </td>
-                      <td className="whitespace-nowrap p-2 text-gray-600">
+                      <td className="whitespace-nowrap p-2.5 font-mono text-text-secondary">
                         {thisSnap
                           ? `${thisSnap.doseGrams}g · 1:${thisSnap.ratio ?? "—"}`
                           : "—"}
                       </td>
-                      <td className="p-2 text-gray-500">
+                      <td className="p-2.5 text-text-muted">
                         {changes.length ? changes.join(" · ") : "—"}
                       </td>
-                      <td className="p-2">
+                      <td className="p-2.5 text-text-secondary">
                         {l.notes && <span>{l.notes}</span>}
                         {l.changeNext && (
-                          <span className="block text-gray-500">
+                          <span className="block text-text-muted">
                             → {l.changeNext}
                           </span>
                         )}
                         {l.actualPours && l.actualPours.length > 0 && (
-                          <span className="block text-gray-400">
+                          <span className="block text-text-muted">
                             ⏱ timed ·{" "}
                             {secondsToClock(
                               Math.max(
@@ -378,13 +378,13 @@ export default async function RecipePage({
         </details>
       )}
 
-      <section className="border-t border-gray-200 pt-4">
+      <section className="border-t border-border pt-6">
         <form action={deleteRecipe.bind(null, id)}>
-          <button className="rounded border border-red-300 px-4 py-2 text-sm font-medium text-red-700">
+          <Button variant="destructive" size="sm" type="submit">
             Delete recipe
-          </button>
+          </Button>
         </form>
       </section>
-    </main>
+    </Container>
   );
 }
