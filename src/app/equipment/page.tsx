@@ -3,9 +3,7 @@ import { Trash } from "@phosphor-icons/react/dist/ssr";
 import { db } from "@/lib/db";
 import { coffees, grinders, brewers, profiles } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth";
-import { ROAST_LEVELS } from "@/lib/validation/recipe";
 import {
-  createCoffee,
   deleteCoffee,
   createGrinder,
   deleteGrinder,
@@ -14,13 +12,13 @@ import {
   setDefaultGrinder,
   setDefaultBrewer,
 } from "./actions";
+import { AddCoffeeForm } from "./add-coffee-form";
 import { Container } from "@/components/container";
 import { PageHeader } from "@/components/page-header";
 import { Segmented } from "@/components/segmented";
 import { List, ListRow } from "@/components/list-row";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/alert";
@@ -109,7 +107,20 @@ export default async function LibraryPage({
               {myCoffees.map((c) => (
                 <ListRow
                   key={c.id}
-                  label={c.name}
+                  label={
+                    <span className="flex items-center gap-3">
+                      {c.photoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={c.photoUrl}
+                          alt=""
+                          aria-hidden
+                          className="size-9 shrink-0 rounded-md border border-border object-cover"
+                        />
+                      ) : null}
+                      {c.name}
+                    </span>
+                  }
                   description={
                     [c.roaster, c.origin, c.roastLevel, c.process]
                       .filter(Boolean)
@@ -126,38 +137,7 @@ export default async function LibraryPage({
             <EmptyState message="No coffees yet. Add one below to reuse it across recipes." />
           )}
 
-          <Card className="p-4">
-            <form action={createCoffee} className="flex flex-col gap-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input name="name" placeholder="Name *" aria-label="Coffee name" required />
-                <Input name="roaster" placeholder="Roaster" aria-label="Roaster" />
-                <Input name="origin" placeholder="Origin" aria-label="Origin" />
-                <Select name="roastLevel" defaultValue="" aria-label="Roast level">
-                  <option value="">Roast level</option>
-                  {ROAST_LEVELS.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </Select>
-                <Input
-                  name="process"
-                  placeholder="Process (washed, natural…)"
-                  aria-label="Process"
-                  list="process-options"
-                />
-                <datalist id="process-options">
-                  <option value="Washed" />
-                  <option value="Natural" />
-                  <option value="Honey" />
-                  <option value="Anaerobic" />
-                </datalist>
-              </div>
-              <Button type="submit" className="self-start">
-                Add coffee
-              </Button>
-            </form>
-          </Card>
+          <AddCoffeeForm />
         </section>
       )}
 
